@@ -4,7 +4,7 @@
     <fileDesc>
       <titleStmt>
                  <!-- ***Title*** -->
-        <title>Lobet Den Herrn</title>
+        <title>Lobe Den Herren 390</title>
       </titleStmt>
       <pubStmt>
         <respStmt><resp>Generated example</resp></respStmt>
@@ -16,7 +16,7 @@
     <workDesc>
       <work>
                    <!-- ******Title******** -->
-        <title>Lobet Den Herrn</title>
+        <title>Lobe Den Herren 390</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
         <key pname="f" mode="major"/>
@@ -185,3 +185,4 @@
   </music>
 
 </mei>
+
