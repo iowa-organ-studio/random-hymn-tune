@@ -705,6 +705,8 @@
       "Cb": { major:{t:"f",n:7},   minor:{t:"f",n:7} }
     };
 
+    // IMPORTANT FIX:
+    // DO NOT normalize Cb -> B here (Cb major / Ab minor are valid 7-flat keys we need).
     function normalizeTonic(tonic) {
       if (!tonic || typeof tonic !== "string") return "";
       const m = tonic.match(/^([A-Ga-g])([#bB])?$/);
@@ -713,7 +715,6 @@
       let acc = (m[2] || ""); if (acc === "B") acc = "b";
       const canonical = letter + acc;
       switch (canonical) {
-        case "Cb": return "B";
         case "B#": return "C";
         case "E#": return "F";
         case "Fb": return "E";
@@ -898,11 +899,11 @@
       // Verovio transpose tonic: use relative major for minor
       let tonicForVerovio = safeShifted;
       if (modeStr === "minor") {
-        tonicForVerovio = relativeMajorForMinorTonic(safeShifted);
+        tonicForVerovio = relativeMajorForMinorTonic(safeShifted); // e.g., Ab minor -> Cb major
         tonicForVerovio = safeTonicForMode(tonicForVerovio, "major");
       }
 
-      const tonicParam = tonicToVerovioTransposeTonic(tonicForVerovio);
+      const tonicParam = tonicToVerovioTransposeTonic(tonicForVerovio); // e.g., Cb -> "cf"
       if (!tonicParam) return "";
 
       const prefix = octaveShift > 0 ? "+".repeat(octaveShift)
@@ -976,7 +977,7 @@
       updateScaleBadge();
       updateSpacingBadge();
 
-      // Status key label: reflect octave + semitone state using safe spellings
+      // Status key label: reflect octave + semitone state using the SAME safe spelling logic
       const modeStr = (currentMode === "minor") ? "minor" : "major";
       const shifted = currentTargetKey ? transposeTonicBySemitones(currentTargetKey, semitoneShift) : "";
       const shownTonic = shifted ? safeTonicForMode(shifted, modeStr) : "";
@@ -1228,7 +1229,6 @@
             document.getElementById('musicPlusBtn').addEventListener('click', () => musicSizeChange(+SCALE_STEP));
             document.getElementById('musicMinusBtn').addEventListener('click', () => musicSizeChange(-SCALE_STEP));
 
-            // ♯/♭ toggle: flips preferFlats; safeTonicForMode enforces "no E#/B#"
             document.getElementById('enharmonicBtn').addEventListener('click', () => {
               preferFlats = !preferFlats;
               renderCurrent();
