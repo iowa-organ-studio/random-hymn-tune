@@ -160,10 +160,9 @@
     <button id="octUpBtn"   class="btn-oct" type="button" disabled title="Transpose up 8va">8va↑</button>
     <button id="octDownBtn" class="btn-oct" type="button" disabled title="Transpose down 8va">8va↓</button>
 
-    <button id="enharmonicBtn" class="btn-music" type="button" disabled
-      title="Toggle enharmonic spelling (where allowed)">♯/♭</button>
+    <button id="enharmonicBtn" class="btn-music" type="button" disabled title="Toggle enharmonic spelling (where allowed)">♯/♭</button>
 
-    <!-- NEW: Half-step buttons to the right of ♯/♭ -->
+    <!-- Half-step buttons -->
     <button id="halfUpBtn" class="btn-music" type="button" disabled title="Transpose up a semitone">Half step ↑</button>
     <button id="halfDownBtn" class="btn-music" type="button" disabled title="Transpose down a semitone">Half step ↓</button>
 
@@ -180,12 +179,13 @@
     </div>
   </div>
 
-  <!-- Title + music ABOVE the option panels -->
+  <!-- Title + Collection above the viewer -->
   <div id="titleBar" aria-live="polite" title="">
-    <div class="title-item" id="titleItem">Title: <span class="value" id="titleValue">—</span></div>
+    <div class="title-item">Title: <span class="value" id="titleValue">—</span></div>
     <div class="divider">|</div>
-    <div class="title-item" id="collectionItem">Collection: <span class="value" id="collectionValue">—</span></div>
+    <div class="title-item">Collection: <span class="value" id="collectionValue">—</span></div>
   </div>
+
   <div id="viewer"><div id="svg"></div></div>
 
   <div id="optionsBar">
@@ -262,7 +262,7 @@
     let originalTonic = "";
     let octaveShift = 0;
 
-    // NEW: semitone shift (half-steps), applied on top of currentTargetKey
+    // Semitone shift (half-steps), applied on top of currentTargetKey
     let semitoneShift = 0;
 
     // Enharmonic preference toggle (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)
@@ -630,7 +630,7 @@
     }
 
     // ------------------------------
-    // Build dynamic Meter UI (from <meterSig count/unit>)
+    // Build dynamic Meter UI
     // ------------------------------
     async function buildMetersUIFromAllTunes() {
       clearRow("meterRow");
@@ -721,17 +721,6 @@
       }
     }
 
-    function tonicsByAccidentalsSelected(mode, selectedSet) {
-      const keyMode = (mode === "minor") ? "minor" : "major";
-      return Object.keys(KEY_SIG_BY_TONIC).filter(T => {
-        const pick = KEY_SIG_BY_TONIC[T][keyMode];
-        if (!pick) return false;
-        if (!selectedSet.has(pick.n)) return false;
-        if (keyMode === "minor" && T === "Cb") return false;
-        return true;
-      });
-    }
-
     function keySigFor(tonic, mode) {
       const T = normalizeTonic(tonic);
       const entry = KEY_SIG_BY_TONIC[T];
@@ -779,11 +768,7 @@
     }
 
     // ------------------------------
-    // HARD SAFETY RULES:
-    // - Never display or render in E#, B#
-    // - Never render a key signature > 7 accidentals
-    // - ♯/♭ toggles among: C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb
-    //   but if a spelling would force E#/B# or >7, we force the safe enharmonic.
+    // HARD SAFETY RULES
     // ------------------------------
     const FORBID_BY_MODE = {
       major: new Set(["C#", "F#"]),   // would create E#/B# in diatonic spelling
@@ -799,59 +784,56 @@
     }
 
     function safeTonicForMode(tonic, mode) {
-      // normalize E#/B# away immediately
       let t = normalizeTonic(tonic);
 
-      // Apply enharmonic preference (where possible)
+      // Apply enharmonic preference where possible
       if (ENHARMONIC_MAP[t]) {
-        const want = preferFlats ? (t.includes("#") ? ENHARMONIC_MAP[t] : t) : (t.includes("b") ? ENHARMONIC_MAP[t] : t);
+        const want = preferFlats
+          ? (t.includes("#") ? ENHARMONIC_MAP[t] : t)
+          : (t.includes("b") ? ENHARMONIC_MAP[t] : t);
         t = want;
       }
 
-      // If the chosen spelling isn't available in our signature table, fall back to its pair (if it has one)
+      // If chosen spelling isn't available, try its pair
       if (!isKeyAvailable(t, mode) && ENHARMONIC_MAP[t] && isKeyAvailable(ENHARMONIC_MAP[t], mode)) {
         t = ENHARMONIC_MAP[t];
       }
 
       // Enforce "never E#/B#" by forcing safe enharmonics for known-problem keys
       if ((mode === "minor" ? FORBID_BY_MODE.minor : FORBID_BY_MODE.major).has(t)) {
-        // force to flat enharmonic
         if (ENHARMONIC_MAP[t]) t = ENHARMONIC_MAP[t];
       }
 
-      // Final safety: if still unavailable, keep forcing to safe flats for sharp-only names
+      // Final fallback if still unavailable
       if (!isKeyAvailable(t, mode)) {
-        // known unsafe major sharps:
         const fallback = ({ "D#":"Eb", "G#":"Ab", "A#":"Bb", "C#":"Db", "F#":"Gb" })[t];
         if (fallback && isKeyAvailable(fallback, mode)) t = fallback;
       }
 
-      // Absolute last resort: C major / A minor
       if (!isKeyAvailable(t, mode)) return (mode === "minor") ? "A" : "C";
       return t;
     }
 
-    // --- semitone mapping (12-TET pitch classes) ---
+    // semitone mapping (12-TET pitch classes)
     const PC_BY_TONIC = {
       "C":0, "C#":1, "Db":1, "D":2, "D#":3, "Eb":3, "E":4, "F":5, "F#":6, "Gb":6,
       "G":7, "G#":8, "Ab":8, "A":9, "A#":10, "Bb":10, "B":11, "Cb":11
     };
 
-    function tonicFromPC(pc, preferFlatsLocal) {
+    function tonicFromPC(pc) {
       const p = ((pc % 12) + 12) % 12;
-      // For the 5 toggle pairs, choose by preferFlatsLocal; naturals fixed.
       switch (p) {
         case 0: return "C";
-        case 1: return preferFlatsLocal ? "Db" : "C#";
+        case 1: return preferFlats ? "Db" : "C#";
         case 2: return "D";
-        case 3: return preferFlatsLocal ? "Eb" : "D#";
+        case 3: return preferFlats ? "Eb" : "D#";
         case 4: return "E";
         case 5: return "F";
-        case 6: return preferFlatsLocal ? "Gb" : "F#";
+        case 6: return preferFlats ? "Gb" : "F#";
         case 7: return "G";
-        case 8: return preferFlatsLocal ? "Ab" : "G#";
+        case 8: return preferFlats ? "Ab" : "G#";
         case 9: return "A";
-        case 10:return preferFlatsLocal ? "Bb" : "A#";
+        case 10:return preferFlats ? "Bb" : "A#";
         case 11:return "B";
         default:return "C";
       }
@@ -861,13 +843,37 @@
       const base = normalizeTonic(tonic);
       const pc = PC_BY_TONIC[base];
       if (typeof pc !== "number") return base;
-      const raw = tonicFromPC(pc + semis, preferFlats);
-      return raw;
+      return tonicFromPC(pc + semis);
     }
 
-    function computeDisplayTonic(tonic, mode) {
-      // "Display tonic" is the same as "safe tonic" here: we will *not* display forbidden spellings.
-      return safeTonicForMode(tonic, mode);
+    // --- KEY RANGE FIX: decide "n accidentals" buckets based on SAFE spelling ---
+    function keySigCountForTonicMode(tonic, mode) {
+      const keyMode = (mode === "minor") ? "minor" : "major";
+      const T = normalizeTonic(tonic);
+      const entry = KEY_SIG_BY_TONIC[T];
+      const pick = entry?.[keyMode];
+      if (!pick) return null;
+      return pick.n;
+    }
+
+    function tonicsByAccidentalsSelected(mode, selectedSet) {
+      const keyMode = (mode === "minor") ? "minor" : "major";
+      const out = new Set();
+
+      for (const rawT of Object.keys(KEY_SIG_BY_TONIC)) {
+        const rawPick = KEY_SIG_BY_TONIC[rawT]?.[keyMode];
+        if (!rawPick) continue;
+
+        const safeT = safeTonicForMode(rawT, keyMode);
+
+        const n = keySigCountForTonicMode(safeT, keyMode);
+        if (n === null) continue;
+
+        if (selectedSet.has(n)) out.add(safeT);
+      }
+
+      if (keyMode === "minor") out.delete("Cb");
+      return Array.from(out);
     }
 
     function tonicToVerovioTransposeTonic(tonic) {
@@ -885,11 +891,11 @@
 
       const modeStr = (currentMode === "minor") ? "minor" : "major";
 
-      // Start from current target, apply semitone shift, then clamp to safe spelling
+      // Apply semitone shift, then force safe spelling for *displayed key*
       const shifted = transposeTonicBySemitones(currentTargetKey, semitoneShift);
       const safeShifted = safeTonicForMode(shifted, modeStr);
 
-      // Verovio wants the MAJOR tonic for transposition even when displaying minor
+      // Verovio transpose tonic: use relative major for minor
       let tonicForVerovio = safeShifted;
       if (modeStr === "minor") {
         tonicForVerovio = relativeMajorForMinorTonic(safeShifted);
@@ -973,7 +979,7 @@
       // Status key label: reflect octave + semitone state using safe spellings
       const modeStr = (currentMode === "minor") ? "minor" : "major";
       const shifted = currentTargetKey ? transposeTonicBySemitones(currentTargetKey, semitoneShift) : "";
-      const shownTonic = shifted ? computeDisplayTonic(shifted, modeStr) : "";
+      const shownTonic = shifted ? safeTonicForMode(shifted, modeStr) : "";
 
       let keyShown = "—";
       if (shownTonic) {
@@ -1087,7 +1093,6 @@
     async function octaveUp()   { octaveShift += 1; await renderCurrent(); }
     async function octaveDown() { octaveShift -= 1; await renderCurrent(); }
 
-    // NEW: half-step controls
     async function halfStepUp()   { semitoneShift += 1; await renderCurrent(); }
     async function halfStepDown() { semitoneShift -= 1; await renderCurrent(); }
 
@@ -1207,8 +1212,6 @@
             document.getElementById('musicMinusBtn').disabled = false;
 
             document.getElementById('enharmonicBtn').disabled = false;
-
-            // NEW: enable half-step buttons
             document.getElementById('halfUpBtn').disabled = false;
             document.getElementById('halfDownBtn').disabled = false;
 
@@ -1216,7 +1219,6 @@
             document.getElementById('octUpBtn').addEventListener('click',  octaveUp);
             document.getElementById('octDownBtn').addEventListener('click', octaveDown);
 
-            // NEW: wire half-step
             document.getElementById('halfUpBtn').addEventListener('click',  halfStepUp);
             document.getElementById('halfDownBtn').addEventListener('click', halfStepDown);
 
@@ -1226,7 +1228,7 @@
             document.getElementById('musicPlusBtn').addEventListener('click', () => musicSizeChange(+SCALE_STEP));
             document.getElementById('musicMinusBtn').addEventListener('click', () => musicSizeChange(-SCALE_STEP));
 
-            // ♯/♭ toggle (now covers 5 pairs, with safety clamping)
+            // ♯/♭ toggle: flips preferFlats; safeTonicForMode enforces "no E#/B#"
             document.getElementById('enharmonicBtn').addEventListener('click', () => {
               preferFlats = !preferFlats;
               renderCurrent();
