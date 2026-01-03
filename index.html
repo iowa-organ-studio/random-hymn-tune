@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -128,10 +127,15 @@
     .key-range .range-btn:hover { background: #444; }
     .key-range .range-btn.active { background: var(--gold); color: #222; border: 1px solid var(--gold-border); }
 
+    /* Title + Collection bar */
     #titleBar {
       background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 6px 10px;
       font-weight: 700; color: #333; margin: 4px 0 8px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
     }
+    #titleBar .title-item { font-weight: 700; }
+    #titleBar .title-item span.value { font-weight: 600; }
+    #titleBar .divider { opacity: 0.35; }
 
     #viewer {
       background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 4px; min-height: 200px;
@@ -156,7 +160,12 @@
     <button id="octUpBtn"   class="btn-oct" type="button" disabled title="Transpose up 8va">8va↑</button>
     <button id="octDownBtn" class="btn-oct" type="button" disabled title="Transpose down 8va">8va↓</button>
 
-    <button id="enharmonicBtn" class="btn-music" type="button" disabled title="Toggle Db/C# and Gb/F# spelling">♯/♭</button>
+    <button id="enharmonicBtn" class="btn-music" type="button" disabled
+      title="Toggle enharmonic spelling (where allowed)">♯/♭</button>
+
+    <!-- NEW: Half-step buttons to the right of ♯/♭ -->
+    <button id="halfUpBtn" class="btn-music" type="button" disabled title="Transpose up a semitone">Half step ↑</button>
+    <button id="halfDownBtn" class="btn-music" type="button" disabled title="Transpose down a semitone">Half step ↓</button>
 
     <div class="control-group" id="groupSpacing">
       <button id="spacingPlusBtn"  class="btn-spacing" type="button" disabled title="Increase spacing between notes">spacing+</button>
@@ -172,7 +181,11 @@
   </div>
 
   <!-- Title + music ABOVE the option panels -->
-  <div id="titleBar" aria-live="polite">Title: —</div>
+  <div id="titleBar" aria-live="polite" title="">
+    <div class="title-item" id="titleItem">Title: <span class="value" id="titleValue">—</span></div>
+    <div class="divider">|</div>
+    <div class="title-item" id="collectionItem">Collection: <span class="value" id="collectionValue">—</span></div>
+  </div>
   <div id="viewer"><div id="svg"></div></div>
 
   <div id="optionsBar">
@@ -249,9 +262,18 @@
     let originalTonic = "";
     let octaveShift = 0;
 
-    // Enharmonic preference toggle (only affects C#/Db and F#/Gb)
+    // NEW: semitone shift (half-steps), applied on top of currentTargetKey
+    let semitoneShift = 0;
+
+    // Enharmonic preference toggle (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)
     let preferFlats = false;
-    const ENHARMONIC_MAP = { "C#":"Db", "Db":"C#", "F#":"Gb", "Gb":"F#" };
+    const ENHARMONIC_MAP = {
+      "C#":"Db", "Db":"C#",
+      "D#":"Eb", "Eb":"D#",
+      "F#":"Gb", "Gb":"F#",
+      "G#":"Ab", "Ab":"G#",
+      "A#":"Bb", "Bb":"A#"
+    };
 
     const originalMeiCache = {};   // filename -> MEI text
     const metadataCache    = {};   // filename -> parsed tags (with version)
@@ -756,14 +778,96 @@
       return new XMLSerializer().serializeToString(xml);
     }
 
-    function computeDisplayTonic(tonic) {
-      let t = tonic || "";
-      if (!t) return "";
+    // ------------------------------
+    // HARD SAFETY RULES:
+    // - Never display or render in E#, B#
+    // - Never render a key signature > 7 accidentals
+    // - ♯/♭ toggles among: C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb
+    //   but if a spelling would force E#/B# or >7, we force the safe enharmonic.
+    // ------------------------------
+    const FORBID_BY_MODE = {
+      major: new Set(["C#", "F#"]),   // would create E#/B# in diatonic spelling
+      minor: new Set(["A#", "D#"])    // would create E# and/or B#
+    };
+
+    function isKeyAvailable(tonic, mode) {
+      const T = normalizeTonic(tonic);
+      const entry = KEY_SIG_BY_TONIC[T];
+      if (!entry) return false;
+      const pick = (mode === "minor") ? entry.minor : entry.major;
+      return !!pick;
+    }
+
+    function safeTonicForMode(tonic, mode) {
+      // normalize E#/B# away immediately
+      let t = normalizeTonic(tonic);
+
+      // Apply enharmonic preference (where possible)
       if (ENHARMONIC_MAP[t]) {
-        if (preferFlats && t.includes("#")) t = ENHARMONIC_MAP[t];
-        if (!preferFlats && t.includes("b")) t = ENHARMONIC_MAP[t];
+        const want = preferFlats ? (t.includes("#") ? ENHARMONIC_MAP[t] : t) : (t.includes("b") ? ENHARMONIC_MAP[t] : t);
+        t = want;
       }
+
+      // If the chosen spelling isn't available in our signature table, fall back to its pair (if it has one)
+      if (!isKeyAvailable(t, mode) && ENHARMONIC_MAP[t] && isKeyAvailable(ENHARMONIC_MAP[t], mode)) {
+        t = ENHARMONIC_MAP[t];
+      }
+
+      // Enforce "never E#/B#" by forcing safe enharmonics for known-problem keys
+      if ((mode === "minor" ? FORBID_BY_MODE.minor : FORBID_BY_MODE.major).has(t)) {
+        // force to flat enharmonic
+        if (ENHARMONIC_MAP[t]) t = ENHARMONIC_MAP[t];
+      }
+
+      // Final safety: if still unavailable, keep forcing to safe flats for sharp-only names
+      if (!isKeyAvailable(t, mode)) {
+        // known unsafe major sharps:
+        const fallback = ({ "D#":"Eb", "G#":"Ab", "A#":"Bb", "C#":"Db", "F#":"Gb" })[t];
+        if (fallback && isKeyAvailable(fallback, mode)) t = fallback;
+      }
+
+      // Absolute last resort: C major / A minor
+      if (!isKeyAvailable(t, mode)) return (mode === "minor") ? "A" : "C";
       return t;
+    }
+
+    // --- semitone mapping (12-TET pitch classes) ---
+    const PC_BY_TONIC = {
+      "C":0, "C#":1, "Db":1, "D":2, "D#":3, "Eb":3, "E":4, "F":5, "F#":6, "Gb":6,
+      "G":7, "G#":8, "Ab":8, "A":9, "A#":10, "Bb":10, "B":11, "Cb":11
+    };
+
+    function tonicFromPC(pc, preferFlatsLocal) {
+      const p = ((pc % 12) + 12) % 12;
+      // For the 5 toggle pairs, choose by preferFlatsLocal; naturals fixed.
+      switch (p) {
+        case 0: return "C";
+        case 1: return preferFlatsLocal ? "Db" : "C#";
+        case 2: return "D";
+        case 3: return preferFlatsLocal ? "Eb" : "D#";
+        case 4: return "E";
+        case 5: return "F";
+        case 6: return preferFlatsLocal ? "Gb" : "F#";
+        case 7: return "G";
+        case 8: return preferFlatsLocal ? "Ab" : "G#";
+        case 9: return "A";
+        case 10:return preferFlatsLocal ? "Bb" : "A#";
+        case 11:return "B";
+        default:return "C";
+      }
+    }
+
+    function transposeTonicBySemitones(tonic, semis) {
+      const base = normalizeTonic(tonic);
+      const pc = PC_BY_TONIC[base];
+      if (typeof pc !== "number") return base;
+      const raw = tonicFromPC(pc + semis, preferFlats);
+      return raw;
+    }
+
+    function computeDisplayTonic(tonic, mode) {
+      // "Display tonic" is the same as "safe tonic" here: we will *not* display forbidden spellings.
+      return safeTonicForMode(tonic, mode);
     }
 
     function tonicToVerovioTransposeTonic(tonic) {
@@ -779,12 +883,17 @@
     function computeTransposeOption() {
       if (!currentTargetKey) return "";
 
-      const displayMinorOrMajorTonic = computeDisplayTonic(currentTargetKey);
+      const modeStr = (currentMode === "minor") ? "minor" : "major";
 
-      let tonicForVerovio = displayMinorOrMajorTonic;
-      if (currentMode === "minor") {
-        tonicForVerovio = relativeMajorForMinorTonic(displayMinorOrMajorTonic);
-        tonicForVerovio = computeDisplayTonic(tonicForVerovio);
+      // Start from current target, apply semitone shift, then clamp to safe spelling
+      const shifted = transposeTonicBySemitones(currentTargetKey, semitoneShift);
+      const safeShifted = safeTonicForMode(shifted, modeStr);
+
+      // Verovio wants the MAJOR tonic for transposition even when displaying minor
+      let tonicForVerovio = safeShifted;
+      if (modeStr === "minor") {
+        tonicForVerovio = relativeMajorForMinorTonic(safeShifted);
+        tonicForVerovio = safeTonicForMode(tonicForVerovio, "major");
       }
 
       const tonicParam = tonicToVerovioTransposeTonic(tonicForVerovio);
@@ -861,31 +970,47 @@
       updateScaleBadge();
       updateSpacingBadge();
 
-      const displayTonic = currentTargetKey ? computeDisplayTonic(currentTargetKey) : "";
-      const keyShown = currentTargetKey
-        ? `${labelFor(displayTonic)} ${currentMode || "major"}`
-        : (octaveShift ? (octaveShift > 0 ? "8va↑" : "8va↓") : "original");
+      // Status key label: reflect octave + semitone state using safe spellings
+      const modeStr = (currentMode === "minor") ? "minor" : "major";
+      const shifted = currentTargetKey ? transposeTonicBySemitones(currentTargetKey, semitoneShift) : "";
+      const shownTonic = shifted ? computeDisplayTonic(shifted, modeStr) : "";
+
+      let keyShown = "—";
+      if (shownTonic) {
+        keyShown = `${labelFor(shownTonic)} ${modeStr}`;
+      } else {
+        keyShown = (octaveShift ? (octaveShift > 0 ? "8va↑" : "8va↓") : "original");
+      }
+      if (semitoneShift) {
+        keyShown += ` (${semitoneShift > 0 ? "+" : ""}${semitoneShift} st)`;
+      }
 
       try {
         const md = await getMetadata(currentFile);
         const titleText = (md.title || "").trim();
-        setStatus(currentFile, keyShown, titleText);
+        const colText = (md.collection || (md.collections && md.collections[0]) || "").trim();
+        setStatus(currentFile, keyShown, titleText, colText);
       } catch (e) {
-        setStatus(currentFile, keyShown, "");
+        setStatus(currentFile, keyShown, "", "");
       }
     }
 
-    function setStatus(fileName, keyShown, titleText = "") {
+    function setStatus(fileName, keyShown, titleText = "", collectionText = "") {
       const tuneName = (fileName && fileName !== "—") ? fileName.split('/').pop().replace(/\.mei$/i,'') : "—";
       const keyText  = keyShown && keyShown.trim ? keyShown : "—";
       const titleStr = (titleText && titleText.trim()) ? titleText.trim() : "—";
+      const colStr   = (collectionText && collectionText.trim()) ? collectionText.trim() : "—";
+
       document.getElementById('statusTune').textContent = `File: ${tuneName}`;
       document.getElementById('statusKey').textContent  = `Key: ${keyText}`;
+
+      const titleValue = document.getElementById('titleValue');
+      const collectionValue = document.getElementById('collectionValue');
+      if (titleValue) titleValue.textContent = titleStr;
+      if (collectionValue) collectionValue.textContent = colStr;
+
       const titleBar = document.getElementById('titleBar');
-      if (titleBar) {
-        titleBar.textContent = `Title: ${titleStr}`;
-        titleBar.title = titleStr;
-      }
+      if (titleBar) titleBar.title = `Title: ${titleStr} | Collection: ${colStr}`;
     }
 
     // ------------------------------
@@ -948,16 +1073,23 @@
           ? allowedTonics[Math.floor(Math.random() * allowedTonics.length)]
           : "";
 
+        // reset transposition offsets for new tune
         octaveShift = 0;
+        semitoneShift = 0;
+
         await renderCurrent();
       } catch (err) {
         console.error(err);
-        setStatus("—", `Error: ${err.message}`, "");
+        setStatus("—", `Error: ${err.message}`, "", "");
       }
     }
 
     async function octaveUp()   { octaveShift += 1; await renderCurrent(); }
     async function octaveDown() { octaveShift -= 1; await renderCurrent(); }
+
+    // NEW: half-step controls
+    async function halfStepUp()   { semitoneShift += 1; await renderCurrent(); }
+    async function halfStepDown() { semitoneShift -= 1; await renderCurrent(); }
 
     // ------------------------------
     // Discover tunes
@@ -1026,7 +1158,7 @@
       addPlainCheckboxes("mmRow", majorMinorVals, true);
 
       await discoverTunes();
-      if (!tuneFiles || tuneFiles.length === 0) setStatus("—", "No tunes found.", "");
+      if (!tuneFiles || tuneFiles.length === 0) setStatus("—", "No tunes found.", "", "");
 
       // Build dynamic lists from actual MEI files
       await buildCollectionsUIFromAllTunes();
@@ -1047,7 +1179,7 @@
 
       const verovioUrl = 'https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js?v=latest';
       try { await loadScript(verovioUrl); }
-      catch (err) { console.error(err); setStatus("—", `Failed to load Verovio: ${err.message}`, ""); return; }
+      catch (err) { console.error(err); setStatus("—", `Failed to load Verovio: ${err.message}`, "", ""); return; }
 
       const waitForGlobal = () => new Promise((resolve, reject) => {
         const start = performance.now(); const maxWaitMs = 10000;
@@ -1076,9 +1208,17 @@
 
             document.getElementById('enharmonicBtn').disabled = false;
 
+            // NEW: enable half-step buttons
+            document.getElementById('halfUpBtn').disabled = false;
+            document.getElementById('halfDownBtn').disabled = false;
+
             document.getElementById('randomBtn').addEventListener('click', showRandomTune);
             document.getElementById('octUpBtn').addEventListener('click',  octaveUp);
             document.getElementById('octDownBtn').addEventListener('click', octaveDown);
+
+            // NEW: wire half-step
+            document.getElementById('halfUpBtn').addEventListener('click',  halfStepUp);
+            document.getElementById('halfDownBtn').addEventListener('click', halfStepDown);
 
             document.getElementById('spacingPlusBtn').addEventListener('click', () => spacingChange(+SPACING_STEP));
             document.getElementById('spacingMinusBtn').addEventListener('click', () => spacingChange(-SPACING_STEP));
@@ -1086,6 +1226,7 @@
             document.getElementById('musicPlusBtn').addEventListener('click', () => musicSizeChange(+SCALE_STEP));
             document.getElementById('musicMinusBtn').addEventListener('click', () => musicSizeChange(-SCALE_STEP));
 
+            // ♯/♭ toggle (now covers 5 pairs, with safety clamping)
             document.getElementById('enharmonicBtn').addEventListener('click', () => {
               preferFlats = !preferFlats;
               renderCurrent();
@@ -1099,13 +1240,13 @@
             if (tuneFiles.length > 0) showRandomTune();
           } catch (err) {
             console.error(err);
-            setStatus("—", `Toolkit init error: ${err.message}`, "");
+            setStatus("—", `Toolkit init error: ${err.message}`, "", "");
           }
         };
-        setStatus("—", "Initializing Verovio…", "");
+        setStatus("—", "Initializing Verovio…", "", "");
       } catch (err) {
         console.error(err);
-        setStatus("—", `Verovio not available: ${err.message}`, "");
+        setStatus("—", `Verovio not available: ${err.message}`, "", "");
       }
     }
 
