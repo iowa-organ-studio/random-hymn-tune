@@ -4,7 +4,7 @@
     <fileDesc>
       <titleStmt>
                  <!-- ***Title*** -->
-        <title>Straf Mich</title>
+        <title>Straf Mich 187</title>
       </titleStmt>
       <pubStmt>
         <respStmt><resp>Generated example</resp></respStmt>
@@ -16,7 +16,7 @@
     <workDesc>
       <work>
                    <!-- ******Title******** -->
-        <title>Straf Mich</title>
+        <title>Straf Mich 187</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
         <key pname="d" mode="major"/>
@@ -159,3 +159,4 @@
   </music>
 
 </mei>
+
