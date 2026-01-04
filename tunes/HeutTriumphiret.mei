@@ -4,7 +4,7 @@
     <fileDesc>
       <titleStmt>
                  <!-- ***Title*** -->
-        <title>Heut' Triumphiret</title>
+        <title>Heut' Triumphiret BWV 630</title>
       </titleStmt>
       <pubStmt>
         <respStmt><resp>Generated example</resp></respStmt>
@@ -16,7 +16,7 @@
     <workDesc>
       <work>
                    <!-- ******Title******** -->
-        <title>Heut' Triumphiret</title>
+        <title>Heut' Triumphiret BWV 630</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
         <key pname="g" mode="minor"/>
@@ -262,3 +262,4 @@
   </music>
 
 </mei>
+
