@@ -4,7 +4,7 @@
     <fileDesc>
       <titleStmt>
                  <!-- ***Title*** -->
-        <title>Herr Jesu Christ, Dich Zu Uns Wend BWV632</title>
+        <title>Herr Jesu Christ, Dich Zu Uns Wend BWV 632</title>
       </titleStmt>
       <pubStmt>
         <respStmt><resp>Generated example</resp></respStmt>
@@ -16,7 +16,7 @@
     <workDesc>
       <work>
                    <!-- ******Title******** -->
-        <title>Herr Jesu Christ, Dich Zu Uns Wend BWV632</title>
+        <title>Herr Jesu Christ, Dich Zu Uns Wend BWV 632</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
         <key pname="f" mode="major"/>
@@ -149,5 +149,6 @@
   </music>
 
 </mei>
+
 
 
