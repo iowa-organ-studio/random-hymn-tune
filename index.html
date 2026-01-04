@@ -5,149 +5,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Random Hymn Tune</title>
   <style>
-    :root {
-      --panel-gap: 8px;
-      --panel-pad: 8px;
+    :root{
+      --panel-gap:8px;--panel-pad:8px;
+      --gold:#FFC600;--gold-border:#d7a900;
+      --gold-lite:#FFEFAD;--gold-lite-border:#E6D48A;--gold-lite-hover:#FFE68A;
 
-      /* Active selection gold (for checked boxes + active key-range buttons) */
-      --gold: #FFC600;
-      --gold-border: #d7a900;
-
-      /* Light gold for ALL/NONE buttons (intentionally lighter than --gold) */
-      --gold-lite: #FFEFAD;
-      --gold-lite-border: #E6D48A;
-      --gold-lite-hover: #FFE68A;
-
-      --btn-blue: #0a64dc;
-      --btn-blue-hover: #084fb0;
-      --btn-lightblue: #5ab6ff;
-      --btn-lightblue-hover: #3fa8ff;
-      --btn-red: #d32f2f;
-      --btn-red-hover: #b71c1c;
-      --btn-pink: #ff6fb3;
-      --btn-pink-hover: #ff4fa3;
-
-      --btn-gray: #666;
-      --btn-gray-hover: #444;
+      --btn-blue:#0a64dc;--btn-blue-hover:#084fb0;
+      --btn-lightblue:#5ab6ff;--btn-lightblue-hover:#3fa8ff;
+      --btn-red:#d32f2f;--btn-red-hover:#b71c1c;
+      --btn-pink:#ff6fb3;--btn-pink-hover:#ff4fa3;
     }
 
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      margin: 0; padding: 12px; background: #f7f7f9;
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:12px;background:#f7f7f9}
+    #controlsBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+    .control-group{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+    button{
+      color:#fff;border:none;border-radius:8px;
+      padding:8px 12px;font-size:.95rem;cursor:pointer;
+      transition:background-color 120ms ease,opacity 120ms ease
+    }
+    button[disabled]{opacity:.6;cursor:not-allowed}
+
+    .btn-random{background:var(--btn-red)} .btn-random:hover{background:var(--btn-red-hover)}
+    .btn-oct{background:var(--btn-pink)} .btn-oct:hover{background:var(--btn-pink-hover)}
+    .btn-spacing{background:var(--btn-blue)} .btn-spacing:hover{background:var(--btn-blue-hover)}
+    .btn-music{background:var(--btn-lightblue);color:#042a46} .btn-music:hover{background:var(--btn-lightblue-hover)}
+
+    .status-badge{
+      padding:2px 8px;background:#fff;border:1px solid #ddd;border-radius:8px;
+      font-weight:600;color:#333
     }
 
-    #controlsBar {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px;
+    #optionsBar{display:flex;align-items:flex-start;gap:var(--panel-gap);flex-wrap:wrap;margin-bottom:8px}
+    .panel{background:#fff;border:1px solid #ddd;border-radius:8px;padding:var(--panel-pad);display:inline-flex;align-items:flex-start;gap:10px}
+    .panel legend{font-weight:700;font-size:.9rem;margin-right:6px}
+    #exPanel{flex-basis:100%}
+    .row{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .panel-tools{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
+
+    .tool-btn{
+      padding:4px 8px;font-size:.82rem;border-radius:6px;
+      background:var(--gold-lite);color:#3b2f00;border:1px solid var(--gold-lite-border);
+      cursor:pointer
     }
+    .tool-btn:hover{background:var(--gold-lite-hover)}
+    .tool-btn:active{transform:translateY(.5px)}
 
-    .control-group {
-      display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    .chk-label{
+      display:inline-flex;align-items:center;gap:6px;font-size:.95rem;
+      padding:2px 6px;border-radius:6px;border:1px solid #ddd;background:#fff;
+      transition:background-color 120ms ease,border-color 120ms ease
     }
-
-    button {
-      color: #fff; border: none; border-radius: 8px;
-      padding: 8px 12px; font-size: 0.95rem; cursor: pointer;
-      transition: background-color 120ms ease, opacity 120ms ease;
+    .chk-label input[type="checkbox"],.chk-label input[type="radio"]{
+      appearance:none;width:14px;height:14px;border-radius:3px;border:1px solid #666;
+      position:relative;margin-right:2px;background:#fff;
+      transition:background-color 120ms ease,border-color 120ms ease,box-shadow 120ms ease
     }
-    button[disabled] { opacity: 0.6; cursor: not-allowed; }
-
-    .btn-random { background: var(--btn-red); }
-    .btn-random:hover { background: var(--btn-red-hover); }
-
-    .btn-oct { background: var(--btn-pink); }
-    .btn-oct:hover { background: var(--btn-pink-hover); }
-
-    .btn-spacing { background: var(--btn-blue); }
-    .btn-spacing:hover { background: var(--btn-blue-hover); }
-
-    .btn-music { background: var(--btn-lightblue); color: #042a46; }
-    .btn-music:hover { background: var(--btn-lightblue-hover); }
-
-    .status-badge {
-      padding: 2px 8px; background: #fff; border: 1px solid #ddd; border-radius: 8px;
-      font-weight: 600; color: #333;
+    .chk-label input[type="checkbox"]::after,.chk-label input[type="radio"]::after{
+      content:"";position:absolute;inset:3px;border-radius:2px;background:#333;opacity:0;transition:opacity 120ms ease
     }
-
-    #optionsBar {
-      display: flex; align-items: flex-start; gap: var(--panel-gap); flex-wrap: wrap; margin-bottom: 8px;
+    .chk-label input[type="checkbox"]:checked,.chk-label input[type="radio"]:checked{
+      background:var(--gold);border-color:var(--gold-border);box-shadow:0 0 0 2px rgba(255,198,0,.25)
     }
-    .panel {
-      background: #fff; border: 1px solid #ddd; border-radius: 8px;
-      padding: var(--panel-pad); display: inline-flex; align-items: flex-start; gap: 10px;
-    }
-    .panel legend { font-weight: 700; font-size: 0.9rem; margin-right: 6px; }
+    .chk-label input[type="checkbox"]:checked::after,.chk-label input[type="radio"]:checked::after{opacity:1}
+    .chk-label span{padding:0 4px;border-radius:4px;border:1px solid transparent;color:#222;background:transparent}
 
-    #exPanel { flex-basis: 100%; }
+    .key-range{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .key-range .range-btn{padding:4px 8px;font-size:.85rem;border-radius:6px;background:#666;color:#fff;border:1px solid transparent}
+    .key-range .range-btn:hover{background:#444}
+    .key-range .range-btn.active{background:var(--gold);color:#222;border:1px solid var(--gold-border)}
 
-    .row { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    #titleBar{
+      background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px 10px;
+      font-weight:700;color:#333;margin:4px 0 8px;
+      display:flex;align-items:center;gap:12px;flex-wrap:wrap
+    }
+    #titleBar .title-item{font-weight:700}
+    #titleBar .title-item span.value{font-weight:600}
+    #titleBar .divider{opacity:.35}
 
-    .panel-tools {
-      display: inline-flex;
-      gap: 6px;
-      margin-left: 8px;
-      vertical-align: middle;
+    #viewer{
+      background:#fff;border:1px solid #ddd;border-radius:10px;padding:4px;min-height:200px;
+      overflow-x:auto;overscroll-behavior-x:contain;margin-bottom:8px
     }
-
-    /* ALL/NONE buttons: pale gold */
-    .tool-btn {
-      padding: 4px 8px;
-      font-size: 0.82rem;
-      border-radius: 6px;
-      background: var(--gold-lite);
-      color: #3b2f00;
-      border: 1px solid var(--gold-lite-border);
-      cursor: pointer;
-    }
-    .tool-btn:hover { background: var(--gold-lite-hover); }
-    .tool-btn:active { transform: translateY(0.5px); }
-
-    .chk-label {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 0.95rem;
-      padding: 2px 6px; border-radius: 6px; border: 1px solid #ddd; background: #fff;
-      transition: background-color 120ms ease, border-color 120ms ease;
-    }
-    .chk-label input[type="checkbox"], .chk-label input[type="radio"] {
-      appearance: none; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #666;
-      position: relative; margin-right: 2px; background: #fff;
-      transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
-    }
-    .chk-label input[type="checkbox"]::after, .chk-label input[type="radio"]::after {
-      content: ""; position: absolute; inset: 3px; border-radius: 2px; background: #333; opacity: 0; transition: opacity 120ms ease;
-    }
-    .chk-label input[type="checkbox"]:checked, .chk-label input[type="radio"]:checked {
-      background: var(--gold); border-color: var(--gold-border); box-shadow: 0 0 0 2px rgba(255, 198, 0, 0.25);
-    }
-    .chk-label input[type="checkbox"]:checked::after, .chk-label input[type="radio"]:checked::after { opacity: 1; }
-    .chk-label span { padding: 0 4px; border-radius: 4px; border: 1px solid transparent; color: #222; background: transparent; }
-
-    .key-range { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .key-range .range-btn {
-      padding: 4px 8px; font-size: 0.85rem; border-radius: 6px; background: #666; color: #fff; border: 1px solid transparent;
-    }
-    .key-range .range-btn:hover { background: #444; }
-    .key-range .range-btn.active { background: var(--gold); color: #222; border: 1px solid var(--gold-border); }
-
-    /* Title + Collection bar */
-    #titleBar {
-      background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 6px 10px;
-      font-weight: 700; color: #333; margin: 4px 0 8px;
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    }
-    #titleBar .title-item { font-weight: 700; }
-    #titleBar .title-item span.value { font-weight: 600; }
-    #titleBar .divider { opacity: 0.35; }
-
-    #viewer {
-      background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 4px; min-height: 200px;
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
-      margin-bottom: 8px;
-    }
-
-    #svg { width: 100%; height: auto; }
-    #svg svg { display: block; }
-
-    footer { margin-top: 8px; color: #777; font-size: 0.85rem; }
+    #svg{width:100%;height:auto}
+    #svg svg{display:block}
+    footer{margin-top:8px;color:#777;font-size:.85rem}
   </style>
 </head>
 <body>
@@ -160,9 +104,8 @@
     <button id="octUpBtn"   class="btn-oct" type="button" disabled title="Transpose up 8va">8va↑</button>
     <button id="octDownBtn" class="btn-oct" type="button" disabled title="Transpose down 8va">8va↓</button>
 
-    <button id="enharmonicBtn" class="btn-music" type="button" disabled title="Toggle enharmonic spelling (where allowed)">♯/♭</button>
+    <button id="enharmonicBtn" class="btn-music" type="button" disabled title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
 
-    <!-- Half-step buttons -->
     <button id="halfUpBtn" class="btn-music" type="button" disabled title="Transpose up a semitone">Half step ↑</button>
     <button id="halfDownBtn" class="btn-music" type="button" disabled title="Transpose down a semitone">Half step ↓</button>
 
@@ -179,7 +122,6 @@
     </div>
   </div>
 
-  <!-- Title + Collection above the viewer -->
   <div id="titleBar" aria-live="polite" title="">
     <div class="title-item">Title: <span class="value" id="titleValue">—</span></div>
     <div class="divider">|</div>
@@ -253,20 +195,19 @@
     const labelFor = k => k.replace(/#/g,"♯").replace(/b/g,"♭");
 
     const majorMinorVals   = ["Major", "Minor"];
-    const excludeTonics    = ["C","C#","Db","D","D#","Eb","E","F","F#","Gb","G","G#","Ab","A","Bb","B","Cb"];
+    const excludeTonics    = ["C","C#","Db","D","D#","Eb","E","F","F#","Gb","G","G#","Ab","A","A#","Bb","B","Cb"];
 
     let vrvToolkit = null;
     let currentFile = null;
+
+    // IMPORTANT: this is the current *target key tonic label* (what status shows; what transpose uses)
     let currentTargetKey = "";
-    let currentMode = "";
+    let currentMode = ""; // "major" | "minor"
     let originalTonic = "";
+
     let octaveShift = 0;
 
-    // Semitone shift (half-steps), applied on top of currentTargetKey
-    let semitoneShift = 0;
-
-    // Enharmonic preference toggle (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)
-    let preferFlats = false;
+    // Required enharmonic toggle pairs
     const ENHARMONIC_MAP = {
       "C#":"Db", "Db":"C#",
       "D#":"Eb", "Eb":"D#",
@@ -279,7 +220,7 @@
     const metadataCache    = {};   // filename -> parsed tags (with version)
 
     const MEI_NS = "http://www.music-encoding.org/ns/mei";
-    const METADATA_CACHE_VERSION = 6; // minor UI changes only
+    const METADATA_CACHE_VERSION = 6;
 
     // --- ENGRAVING OPTIONS ---
     const baseOptions = {
@@ -298,16 +239,14 @@
       spacingSystem: 10,
       spacingStaff: 8,
 
-      // Horizontal spacing (initial defaults)
+      // Horizontal spacing
       spacingLinear: 0.16,
       spacingNonLinear: 0.40,
       minMeasureWidth: 44,
 
-      // Layout behavior
       justifyVertically: false,
       breaks: "auto",
 
-      // Lyrics compact
       spacingLyrics: 6
     };
 
@@ -390,7 +329,7 @@
         btn.type = 'button';
         btn.className = 'range-btn' + (accidentalsSelected.has(n) ? ' active' : '');
         btn.textContent = `${n}#/${n}♭`;
-        btn.title = `Include keys with exactly ${n} accidentals (sharp or flat)`;
+        btn.title = `Include keys with exactly ${n} accidentals (sharp OR flat)`;
         btn.addEventListener('click', () => {
           if (accidentalsSelected.has(n)) { accidentalsSelected.delete(n); btn.classList.remove('active'); }
           else { accidentalsSelected.add(n); btn.classList.add('active'); }
@@ -528,9 +467,6 @@
       return hasSomething ? md : null;
     }
 
-    // ------------------------------
-    // MeterSig from MEI
-    // ------------------------------
     function meterSigFromXml(xml) {
       const meters = allByTagNS(xml, "meterSig");
       const mSig = meters.length ? meters[0] : null;
@@ -540,9 +476,6 @@
       return "";
     }
 
-    // ------------------------------
-    // Collections from MEI (ALL of them)
-    // ------------------------------
     function collectionsFromXml(xml) {
       const identifiers = allByTagNS(xml, "identifier");
       return identifiers
@@ -551,9 +484,6 @@
         .filter(Boolean);
     }
 
-    // ------------------------------
-    // Metadata reader
-    // ------------------------------
     async function getMetadata(fileName) {
       const cached = metadataCache[fileName];
       if (cached && cached.__v === METADATA_CACHE_VERSION) return cached;
@@ -603,12 +533,8 @@
       return out;
     }
 
-    // ------------------------------
-    // Build dynamic Collection UI
-    // ------------------------------
     async function buildCollectionsUIFromAllTunes() {
       clearRow("colRow");
-
       const set = new Set();
       for (const f of tuneFiles) {
         try {
@@ -617,7 +543,6 @@
           cols.forEach(c => set.add(c));
         } catch (e) {}
       }
-
       const list = Array.from(set).sort((a,b) => a.localeCompare(b));
       if (list.length === 0) {
         addPlainCheckboxes("colRow", ["(no collections found)"], true);
@@ -625,16 +550,11 @@
         if (el) el.disabled = true;
         return;
       }
-
       addPlainCheckboxes("colRow", list, true);
     }
 
-    // ------------------------------
-    // Build dynamic Meter UI
-    // ------------------------------
     async function buildMetersUIFromAllTunes() {
       clearRow("meterRow");
-
       const set = new Set();
       for (const f of tuneFiles) {
         try {
@@ -661,7 +581,6 @@
         if (el) el.disabled = true;
         return;
       }
-
       addPlainCheckboxes("meterRow", list, true);
     }
 
@@ -683,73 +602,115 @@
     }
 
     // ------------------------------
-    // Key signature helpers
+    // Key database (NO normalization Cb->B; key sigs capped at 7)
     // ------------------------------
-    const KEY_SIG_BY_TONIC = {
-      "C":  { major:{t:"none",n:0}, minor:{t:"f",n:3} },
-      "G":  { major:{t:"s",n:1},   minor:{t:"f",n:2} },
-      "D":  { major:{t:"s",n:2},   minor:{t:"f",n:1} },
-      "A":  { major:{t:"s",n:3},   minor:{t:"none",n:0} },
-      "E":  { major:{t:"s",n:4},   minor:{t:"s",n:1} },
-      "B":  { major:{t:"s",n:5},   minor:{t:"s",n:2} },
-      "F#": { major:{t:"s",n:6},   minor:{t:"s",n:3} },
-      "C#": { major:{t:"s",n:7},   minor:{t:"s",n:4} },
-      "G#": { major:null,          minor:{t:"s",n:5} },
+    const KEY_DB = {
+      major: [
+        { tonic:"C",  n:0, t:"none" },
+        { tonic:"G",  n:1, t:"s" },
+        { tonic:"D",  n:2, t:"s" },
+        { tonic:"A",  n:3, t:"s" },
+        { tonic:"E",  n:4, t:"s" },
+        { tonic:"B",  n:5, t:"s" },
+        { tonic:"F#", n:6, t:"s" },
+        { tonic:"C#", n:7, t:"s" },
 
-      "F":  { major:{t:"f",n:1},   minor:{t:"f",n:4} },
-      "Bb": { major:{t:"f",n:2},   minor:{t:"f",n:5} },
-      "Eb": { major:{t:"f",n:3},   minor:{t:"f",n:6} },
-      "Ab": { major:{t:"f",n:4},   minor:{t:"f",n:7} },
-      "Db": { major:{t:"f",n:5},   minor:{t:"s",n:4} },
-      "Gb": { major:{t:"f",n:6},   minor:{t:"s",n:3} },
-      "Cb": { major:{t:"f",n:7},   minor:{t:"f",n:7} }
+        { tonic:"F",  n:1, t:"f" },
+        { tonic:"Bb", n:2, t:"f" },
+        { tonic:"Eb", n:3, t:"f" },
+        { tonic:"Ab", n:4, t:"f" },
+        { tonic:"Db", n:5, t:"f" },
+        { tonic:"Gb", n:6, t:"f" },
+        { tonic:"Cb", n:7, t:"f" }
+      ],
+      minor: [
+        { tonic:"A",  n:0, t:"none" },
+        { tonic:"E",  n:1, t:"s" },
+        { tonic:"B",  n:2, t:"s" },
+        { tonic:"F#", n:3, t:"s" },
+        { tonic:"C#", n:4, t:"s" },
+        { tonic:"G#", n:5, t:"s" },
+        { tonic:"D#", n:6, t:"s" },
+        { tonic:"A#", n:7, t:"s" },
+
+        { tonic:"D",  n:1, t:"f" },
+        { tonic:"G",  n:2, t:"f" },
+        { tonic:"C",  n:3, t:"f" },
+        { tonic:"F",  n:4, t:"f" },
+        { tonic:"Bb", n:5, t:"f" },
+        { tonic:"Eb", n:6, t:"f" },
+        { tonic:"Ab", n:7, t:"f" }
+      ]
     };
 
-    // IMPORTANT FIX:
-    // DO NOT normalize Cb -> B here (Cb major / Ab minor are valid 7-flat keys we need).
-    function normalizeTonic(tonic) {
-      if (!tonic || typeof tonic !== "string") return "";
-      const m = tonic.match(/^([A-Ga-g])([#bB])?$/);
-      if (!m) return tonic;
-      let letter = m[1].toUpperCase();
-      let acc = (m[2] || ""); if (acc === "B") acc = "b";
-      const canonical = letter + acc;
-      switch (canonical) {
-        case "B#": return "C";
-        case "E#": return "F";
-        case "Fb": return "E";
-        default:   return canonical;
+    function keyInfo(tonic, mode){
+      const m = (mode === "minor") ? "minor" : "major";
+      return KEY_DB[m].find(k => k.tonic === tonic) || null;
+    }
+
+    function keySigString(tonic, mode){
+      const info = keyInfo(tonic, mode);
+      if (!info) return "";
+      if (info.n === 0 || info.t === "none") return "";
+      return `${info.n}${info.t === "s" ? "s" : "f"}`;
+    }
+
+    function relativeMajorForMinorTonic(minorTonic){
+      const mi = keyInfo(minorTonic, "minor");
+      if (!mi) return "C";
+      // Same key signature (n+t) in major list
+      const maj = KEY_DB.major.find(k => k.n === mi.n && k.t === mi.t);
+      return maj ? maj.tonic : "C";
+    }
+
+    function tonicsByAccidentalsSelected(mode, selectedSet){
+      const m = (mode === "minor") ? "minor" : "major";
+      return KEY_DB[m].filter(k => selectedSet.has(k.n)).map(k => k.tonic);
+    }
+
+    // Pitch class map for half-step buttons
+    const PC = {
+      "C":0,"C#":1,"Db":1,"D":2,"D#":3,"Eb":3,"E":4,"F":5,"F#":6,"Gb":6,
+      "G":7,"G#":8,"Ab":8,"A":9,"A#":10,"Bb":10,"B":11,"Cb":11
+    };
+    function mod12(x){ return ((x%12)+12)%12; }
+
+    function candidatesForPC(pc, mode){
+      const m = (mode === "minor") ? "minor" : "major";
+      const want = mod12(pc);
+      return KEY_DB[m].filter(k => PC[k.tonic] === want).map(k => k.tonic);
+    }
+
+    function preferSpellingFromCurrent(pc, mode, currentTonic){
+      // If one candidate, return it.
+      const cands = candidatesForPC(pc, mode);
+      if (cands.length === 0) return (mode === "minor") ? "A" : "C";
+      if (cands.length === 1) return cands[0];
+
+      // If user currently has a sharp spelling, step prefers sharp; if flat spelling, prefers flat.
+      const wantsSharp = (currentTonic || "").includes("#");
+      const wantsFlat  = (currentTonic || "").includes("b");
+      if (wantsSharp) {
+        const s = cands.find(x => x.includes("#"));
+        if (s) return s;
       }
+      if (wantsFlat) {
+        const f = cands.find(x => x.includes("b"));
+        if (f) return f;
+      }
+
+      // Otherwise default: sharp first
+      return cands.find(x => x.includes("#")) || cands[0];
     }
 
-    function keySigFor(tonic, mode) {
-      const T = normalizeTonic(tonic);
-      const entry = KEY_SIG_BY_TONIC[T];
-      if (!entry) return { sig: "", label: T };
-      const pick = (mode === "minor") ? entry.minor : entry.major;
-      if (!pick) return { sig: "", label: `${labelFor(T)} ${mode}` };
-      if (pick.t === "none" || pick.n === 0) return { sig: "", label: `${labelFor(T)} ${mode}` };
-      const sig = `${pick.n}${pick.t === "s" ? "s" : "f"}`;
-      return { sig, label: `${labelFor(T)} ${mode}` };
-    }
-
-    function relativeMajorForMinorTonic(minorTonic) {
-      const T = normalizeTonic(minorTonic);
-      const entry = KEY_SIG_BY_TONIC[T];
-      const pick = entry?.minor;
-      if (!pick) return "C";
-      if (pick.n === 0 && pick.t === "none") return "C";
-      const found = Object.keys(KEY_SIG_BY_TONIC).find(K => {
-        const maj = KEY_SIG_BY_TONIC[K]?.major;
-        return maj && maj.n === pick.n && maj.t === pick.t;
-      });
-      return found || "C";
-    }
-
+    // ------------------------------
+    // Apply starting key to MEI (for correct naturals)
+    // ------------------------------
     function applyStartingKeyToMei(meiText, tonic, mode) {
-      const { sig } = keySigFor(tonic, mode);
-      const xml = new DOMParser().parseFromString(meiText, "application/xml");
+      const sig = keySigString(tonic, mode);
+      const m = (mode === "minor") ? "minor" : "major";
 
+      const xml = new DOMParser().parseFromString(meiText, "application/xml");
       const targets = [...allByTagNS(xml, "scoreDef"), ...allByTagNS(xml, "staffDef")];
       targets.forEach(el => {
         if (el.hasAttribute("key.sig")) el.removeAttribute("key.sig");
@@ -762,121 +723,15 @@
           el.setAttribute("keysig", "0");
         }
 
-        if (mode) el.setAttribute("key.mode", mode);
+        el.setAttribute("key.mode", m);
       });
 
       return new XMLSerializer().serializeToString(xml);
     }
 
     // ------------------------------
-    // HARD SAFETY RULES
+    // Verovio transpose string
     // ------------------------------
-    const FORBID_BY_MODE = {
-      major: new Set(["C#", "F#"]),   // would create E#/B# in diatonic spelling
-      minor: new Set(["A#", "D#"])    // would create E# and/or B#
-    };
-
-    function isKeyAvailable(tonic, mode) {
-      const T = normalizeTonic(tonic);
-      const entry = KEY_SIG_BY_TONIC[T];
-      if (!entry) return false;
-      const pick = (mode === "minor") ? entry.minor : entry.major;
-      return !!pick;
-    }
-
-    function safeTonicForMode(tonic, mode) {
-      let t = normalizeTonic(tonic);
-
-      // Apply enharmonic preference where possible
-      if (ENHARMONIC_MAP[t]) {
-        const want = preferFlats
-          ? (t.includes("#") ? ENHARMONIC_MAP[t] : t)
-          : (t.includes("b") ? ENHARMONIC_MAP[t] : t);
-        t = want;
-      }
-
-      // If chosen spelling isn't available, try its pair
-      if (!isKeyAvailable(t, mode) && ENHARMONIC_MAP[t] && isKeyAvailable(ENHARMONIC_MAP[t], mode)) {
-        t = ENHARMONIC_MAP[t];
-      }
-
-      // Enforce "never E#/B#" by forcing safe enharmonics for known-problem keys
-      if ((mode === "minor" ? FORBID_BY_MODE.minor : FORBID_BY_MODE.major).has(t)) {
-        if (ENHARMONIC_MAP[t]) t = ENHARMONIC_MAP[t];
-      }
-
-      // Final fallback if still unavailable
-      if (!isKeyAvailable(t, mode)) {
-        const fallback = ({ "D#":"Eb", "G#":"Ab", "A#":"Bb", "C#":"Db", "F#":"Gb" })[t];
-        if (fallback && isKeyAvailable(fallback, mode)) t = fallback;
-      }
-
-      if (!isKeyAvailable(t, mode)) return (mode === "minor") ? "A" : "C";
-      return t;
-    }
-
-    // semitone mapping (12-TET pitch classes)
-    const PC_BY_TONIC = {
-      "C":0, "C#":1, "Db":1, "D":2, "D#":3, "Eb":3, "E":4, "F":5, "F#":6, "Gb":6,
-      "G":7, "G#":8, "Ab":8, "A":9, "A#":10, "Bb":10, "B":11, "Cb":11
-    };
-
-    function tonicFromPC(pc) {
-      const p = ((pc % 12) + 12) % 12;
-      switch (p) {
-        case 0: return "C";
-        case 1: return preferFlats ? "Db" : "C#";
-        case 2: return "D";
-        case 3: return preferFlats ? "Eb" : "D#";
-        case 4: return "E";
-        case 5: return "F";
-        case 6: return preferFlats ? "Gb" : "F#";
-        case 7: return "G";
-        case 8: return preferFlats ? "Ab" : "G#";
-        case 9: return "A";
-        case 10:return preferFlats ? "Bb" : "A#";
-        case 11:return "B";
-        default:return "C";
-      }
-    }
-
-    function transposeTonicBySemitones(tonic, semis) {
-      const base = normalizeTonic(tonic);
-      const pc = PC_BY_TONIC[base];
-      if (typeof pc !== "number") return base;
-      return tonicFromPC(pc + semis);
-    }
-
-    // --- KEY RANGE FIX: decide "n accidentals" buckets based on SAFE spelling ---
-    function keySigCountForTonicMode(tonic, mode) {
-      const keyMode = (mode === "minor") ? "minor" : "major";
-      const T = normalizeTonic(tonic);
-      const entry = KEY_SIG_BY_TONIC[T];
-      const pick = entry?.[keyMode];
-      if (!pick) return null;
-      return pick.n;
-    }
-
-    function tonicsByAccidentalsSelected(mode, selectedSet) {
-      const keyMode = (mode === "minor") ? "minor" : "major";
-      const out = new Set();
-
-      for (const rawT of Object.keys(KEY_SIG_BY_TONIC)) {
-        const rawPick = KEY_SIG_BY_TONIC[rawT]?.[keyMode];
-        if (!rawPick) continue;
-
-        const safeT = safeTonicForMode(rawT, keyMode);
-
-        const n = keySigCountForTonicMode(safeT, keyMode);
-        if (n === null) continue;
-
-        if (selectedSet.has(n)) out.add(safeT);
-      }
-
-      if (keyMode === "minor") out.delete("Cb");
-      return Array.from(out);
-    }
-
     function tonicToVerovioTransposeTonic(tonic) {
       const m = String(tonic || "").match(/^([A-Ga-g])([#bB])?$/);
       if (!m) return "";
@@ -890,20 +745,14 @@
     function computeTransposeOption() {
       if (!currentTargetKey) return "";
 
-      const modeStr = (currentMode === "minor") ? "minor" : "major";
+      const mode = (currentMode === "minor") ? "minor" : "major";
 
-      // Apply semitone shift, then force safe spelling for *displayed key*
-      const shifted = transposeTonicBySemitones(currentTargetKey, semitoneShift);
-      const safeShifted = safeTonicForMode(shifted, modeStr);
+      // For Verovio transpose, use major tonic; if minor, use relative major of the *current target*.
+      const tonicForVerovio = (mode === "minor")
+        ? relativeMajorForMinorTonic(currentTargetKey)
+        : currentTargetKey;
 
-      // Verovio transpose tonic: use relative major for minor
-      let tonicForVerovio = safeShifted;
-      if (modeStr === "minor") {
-        tonicForVerovio = relativeMajorForMinorTonic(safeShifted); // e.g., Ab minor -> Cb major
-        tonicForVerovio = safeTonicForMode(tonicForVerovio, "major");
-      }
-
-      const tonicParam = tonicToVerovioTransposeTonic(tonicForVerovio); // e.g., Cb -> "cf"
+      const tonicParam = tonicToVerovioTransposeTonic(tonicForVerovio);
       if (!tonicParam) return "";
 
       const prefix = octaveShift > 0 ? "+".repeat(octaveShift)
@@ -913,6 +762,9 @@
       return prefix + tonicParam;
     }
 
+    // ------------------------------
+    // Infer original tonic from MEI keysig (fallback)
+    // ------------------------------
     function readInitialKeySigFromXml(xml) {
       const scoreDefs = allByTagNS(xml, "scoreDef");
       const staffDefs = allByTagNS(xml, "staffDef");
@@ -930,13 +782,10 @@
     }
 
     function inferTonicFromKeySig(mode, t, n) {
-      const keyMode = (mode === "minor") ? "minor" : "major";
-      const found = Object.keys(KEY_SIG_BY_TONIC).find(T => {
-        const pick = KEY_SIG_BY_TONIC[T][keyMode];
-        return pick && pick.t === t && pick.n === n;
-      });
-      if (!found && n === 0) return keyMode === "major" ? "C" : "A";
-      return found || "";
+      const m = (mode === "minor") ? "minor" : "major";
+      if (n === 0) return (m === "minor") ? "A" : "C";
+      const found = KEY_DB[m].find(k => k.n === n && k.t === t);
+      return found ? found.tonic : ((m === "minor") ? "A" : "C");
     }
 
     // ------------------------------
@@ -957,9 +806,9 @@
       let meiData = await fetchMei(currentFile);
       meiData = stripMeiTitle(meiData);
 
+      // Keep the file's original key signature consistent with its tonic/mode (for natural handling)
       if (originalTonic) {
-        const modeStr = currentMode === "minor" ? "minor" : "major";
-        meiData = applyStartingKeyToMei(meiData, originalTonic, modeStr);
+        meiData = applyStartingKeyToMei(meiData, originalTonic, currentMode);
       }
 
       const options = {
@@ -977,20 +826,9 @@
       updateScaleBadge();
       updateSpacingBadge();
 
-      // Status key label: reflect octave + semitone state using the SAME safe spelling logic
-      const modeStr = (currentMode === "minor") ? "minor" : "major";
-      const shifted = currentTargetKey ? transposeTonicBySemitones(currentTargetKey, semitoneShift) : "";
-      const shownTonic = shifted ? safeTonicForMode(shifted, modeStr) : "";
-
-      let keyShown = "—";
-      if (shownTonic) {
-        keyShown = `${labelFor(shownTonic)} ${modeStr}`;
-      } else {
-        keyShown = (octaveShift ? (octaveShift > 0 ? "8va↑" : "8va↓") : "original");
-      }
-      if (semitoneShift) {
-        keyShown += ` (${semitoneShift > 0 ? "+" : ""}${semitoneShift} st)`;
-      }
+      const keyShown = currentTargetKey
+        ? `${labelFor(currentTargetKey)} ${currentMode}`
+        : (octaveShift ? (octaveShift > 0 ? "8va↑" : "8va↓") : "original");
 
       try {
         const md = await getMetadata(currentFile);
@@ -1072,7 +910,10 @@
           originalTonic = inferTonicFromKeySig(currentMode, t, n);
         }
 
+        // Candidate target keys from KEY RANGE
         let allowedTonics = tonicsByAccidentalsSelected(currentMode, accidentalsSelected);
+
+        // Apply Exclude
         const excluded = new Set(getChecked('exRow'));
         allowedTonics = allowedTonics.filter(T => !excluded.has(T));
 
@@ -1080,10 +921,7 @@
           ? allowedTonics[Math.floor(Math.random() * allowedTonics.length)]
           : "";
 
-        // reset transposition offsets for new tune
         octaveShift = 0;
-        semitoneShift = 0;
-
         await renderCurrent();
       } catch (err) {
         console.error(err);
@@ -1094,8 +932,30 @@
     async function octaveUp()   { octaveShift += 1; await renderCurrent(); }
     async function octaveDown() { octaveShift -= 1; await renderCurrent(); }
 
-    async function halfStepUp()   { semitoneShift += 1; await renderCurrent(); }
-    async function halfStepDown() { semitoneShift -= 1; await renderCurrent(); }
+    // Half-step buttons: change the ACTUAL target key (so status & music always match)
+    async function halfStep(delta){
+      if (!currentTargetKey) return;
+      const pc = PC[currentTargetKey];
+      if (typeof pc !== "number") return;
+
+      const nextPc = mod12(pc + delta);
+      const next = preferSpellingFromCurrent(nextPc, currentMode, currentTargetKey);
+
+      currentTargetKey = next;
+      await renderCurrent();
+    }
+    async function halfStepUp(){ await halfStep(+1); }
+    async function halfStepDown(){ await halfStep(-1); }
+
+    // Enharmonic toggle: ALWAYS swaps C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb when applicable
+    async function toggleEnharmonic(){
+      if (!currentTargetKey) return;
+      const pair = ENHARMONIC_MAP[currentTargetKey];
+      if (!pair) return;
+
+      currentTargetKey = pair;
+      await renderCurrent();
+    }
 
     // ------------------------------
     // Discover tunes
@@ -1166,11 +1026,9 @@
       await discoverTunes();
       if (!tuneFiles || tuneFiles.length === 0) setStatus("—", "No tunes found.", "", "");
 
-      // Build dynamic lists from actual MEI files
       await buildCollectionsUIFromAllTunes();
       await buildMetersUIFromAllTunes();
 
-      // Hook up Select all / none
       document.getElementById('keysAllBtn').addEventListener('click', keyRangeSelectAll);
       document.getElementById('keysNoneBtn').addEventListener('click', keyRangeSelectNone);
 
@@ -1229,10 +1087,7 @@
             document.getElementById('musicPlusBtn').addEventListener('click', () => musicSizeChange(+SCALE_STEP));
             document.getElementById('musicMinusBtn').addEventListener('click', () => musicSizeChange(-SCALE_STEP));
 
-            document.getElementById('enharmonicBtn').addEventListener('click', () => {
-              preferFlats = !preferFlats;
-              renderCurrent();
-            });
+            document.getElementById('enharmonicBtn').addEventListener('click', toggleEnharmonic);
 
             window.addEventListener('resize', debounce(() => renderCurrent(), 150));
 
