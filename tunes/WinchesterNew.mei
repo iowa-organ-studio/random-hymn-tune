@@ -1,0 +1,142 @@
+
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.0.0">
+  <meiHead>
+    <fileDesc>
+      <titleStmt>
+                 <!-- ***Title*** -->
+        <title>Winchester New 391</title>
+      </titleStmt>
+      <pubStmt>
+        <respStmt><resp>Generated example</resp></respStmt>
+      </pubStmt>
+      <sourceDesc><p>Simple melody example</p></sourceDesc>
+    </fileDesc>
+
+    <!-- Work metadata (tags) -->
+    <workDesc>
+      <work>
+                   <!-- ******Title******** -->
+        <title>Winchester New 391</title>
+
+             <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
+        <key pname="b" accid="f" mode="major"/>
+
+             <!-- ******Duple or Triple (capitalized) *********-->
+        <annot type="meterGroup">Triple</annot>
+
+                    <!-- ******Collection *********-->
+        <identifier type="collection">Hymnal 1982</identifier>
+      </work>
+    </workDesc>
+  </meiHead>
+
+ <music>
+    <body>
+      <mdiv>
+        <score>
+           <scoreDef>
+            <staffGrp>
+              <staffDef n="1" lines="5">
+                <clef shape="G" line="2"/>
+                     <!-- ******Time signature *********-->
+                <meterSig count="4" unit="4"/>
+                     <!-- ******Key signature *********-->
+                <keySig sig="2f"/>
+                          <!-- ******Key  *********-->
+                <key pname="b" accid="f" mode="major"/>
+              </staffDef>
+            </staffGrp>
+          </scoreDef>
+
+     <section>
+            <!-- Pickup -->
+            <measure n="0" metcon="false">
+              <staff n="1"><layer n="1">
+                <note pname="f" oct="4" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="1">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="f" oct="4" dur="4"/>
+                <note pname="g" oct="4" dur="4"/>
+                <note pname="g" oct="4" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="2">
+              <staff n="1"><layer n="1">
+                <note pname="f" oct="4" dur="4"/>
+                <note pname="e" oct="4" dur="4"/>
+                <note xml:id="n2d" pname="d" oct="4" dur="4"/>
+                <note pname="d" oct="4" dur="4"/>
+              </layer></staff>
+              <fermata startid="#n2d" place="above"/>
+            </measure>
+
+            <measure n="3">
+              <staff n="1"><layer n="1">
+                <note pname="e" oct="4" dur="4"/>
+                <note pname="d" oct="4" dur="4"/>
+                <note pname="c" oct="4" dur="4"/>
+                <note pname="f" oct="4" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="4">
+              <staff n="1"><layer n="1">
+                <note pname="f" oct="4" dur="4"/>
+                <note pname="e" accid="n" oct="4" dur="4"/>
+                <note xml:id="n4f" pname="f" oct="4" dur="4"/>
+                <note pname="f" oct="4" dur="4"/>
+              </layer></staff>
+              <fermata startid="#n4f" place="above"/>
+            </measure>
+
+            <measure n="5">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <note pname="d" oct="5" dur="4"/>
+                <note pname="b" oct="4" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="6">
+              <staff n="1"><layer n="1">
+                <note pname="e" oct="5" dur="4"/>
+                <note pname="d" oct="5" dur="4"/>
+                <note xml:id="n6c" pname="c" oct="5" dur="4"/>
+                <note pname="d" oct="5" dur="4"/>
+              </layer></staff>
+              <fermata startid="#n6c" place="above"/>
+            </measure>
+
+            <measure n="7">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="g" oct="4" dur="4"/>
+                <note pname="f" oct="4" dur="4"/>
+                <note pname="b" oct="4" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <!-- Short final measure to balance pickup -->
+            <measure n="8" metcon="false" right="dbl">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="a" oct="4" dur="4"/>
+                <note xml:id="n8b" pname="b" oct="4" dur="4"/>
+              </layer></staff>
+              <fermata startid="#n8b" place="above"/>
+            </measure>
+
+          </section>
+
+        </score>
+      </mdiv>
+    </body>
+  </music>
+
+</mei>
