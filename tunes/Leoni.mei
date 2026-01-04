@@ -19,7 +19,7 @@
         <title>Leoni 372</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
-        <key pname="e" accid="f" mode="minor"/>
+        <key pname="f" mode="minor"/>
 
              <!-- ******Duple or Triple (capitalized) *********-->
         <annot type="meterGroup">Triple</annot>
@@ -206,3 +206,4 @@
   </music>
 
 </mei>
+
