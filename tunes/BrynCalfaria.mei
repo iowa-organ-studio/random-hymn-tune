@@ -115,39 +115,40 @@
             <!-- Meter change to 4/4 but do NOT display a new time signature -->
             <scoreDef meter.count="4" meter.unit="4" meter.visible="false"/>
 
-            <measure n="7">
-              <staff n="1"><layer n="1">
-                <note pname="d" oct="5" dur="2"/>
-                <note pname="b" oct="4" dur="4"/>
-                <note pname="d" oct="5" dur="4"/>
-              </layer></staff>
-            </measure>
+          <measure n="7" meter.count="4" meter.unit="4" meter.visible="false">
+  <staff n="1">
+    <layer n="1">
+      <note pname="d" oct="5" dur="2"/>
+      <note pname="b" oct="4" dur="4"/>
+      <note pname="d" oct="5" dur="4"/>
+    </layer>
+  </staff>
+</measure>
 
-            <!-- Meter change back to 3/2 but do NOT display a new time signature -->
-            <scoreDef meter.count="3" meter.unit="2" meter.visible="false"/>
-
-            <measure n="8">
-              <staff n="1"><layer n="1">
-                <beam>
-                  <note pname="e" oct="5" dur="8"/>
-                  <note pname="d" oct="5" dur="8"/>
-                </beam>
-                <note pname="c" oct="5" dur="4"/>
-                <beam>
-                  <note pname="d" oct="5" dur="8"/>
-                  <note pname="c" oct="5" dur="8"/>
-                </beam>
-                <note pname="b" oct="4" dur="4"/>
-                <beam>
-                  <note pname="c" oct="5" dur="8"/>
-                  <note pname="b" oct="4" dur="8"/>
-                </beam>
-                <beam>
-                  <note pname="a" oct="4" dur="8"/>
-                  <note pname="g" oct="4" dur="8"/>
-                </beam>
-              </layer></staff>
-            </measure>
+<measure n="8" meter.count="3" meter.unit="2" meter.visible="false">
+  <staff n="1">
+    <layer n="1">
+      <beam>
+        <note pname="e" oct="5" dur="8"/>
+        <note pname="d" oct="5" dur="8"/>
+      </beam>
+      <note pname="c" oct="5" dur="4"/>
+      <beam>
+        <note pname="d" oct="5" dur="8"/>
+        <note pname="c" oct="5" dur="8"/>
+      </beam>
+      <note pname="b" oct="4" dur="4"/>
+      <beam>
+        <note pname="c" oct="5" dur="8"/>
+        <note pname="b" oct="4" dur="8"/>
+      </beam>
+      <beam>
+        <note pname="a" oct="4" dur="8"/>
+        <note pname="g" oct="4" dur="8"/>
+      </beam>
+    </layer>
+  </staff>
+</measure>
 
             <measure n="9">
   <staff n="1">
@@ -185,3 +186,4 @@
   </music>
 
 </mei>
+
