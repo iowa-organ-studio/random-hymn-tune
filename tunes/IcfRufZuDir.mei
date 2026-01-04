@@ -4,7 +4,7 @@
     <fileDesc>
       <titleStmt>
                  <!-- ***Title*** -->
-        <title>Ich Ruf zu Dir</title>
+        <title>Ich Ruf zu Dir BWV 638</title>
       </titleStmt>
       <pubStmt>
         <respStmt><resp>Generated example</resp></respStmt>
@@ -16,7 +16,7 @@
     <workDesc>
       <work>
                    <!-- ******Title******** -->
-        <title>Ich Ruf zu Dir</title>
+        <title>Ich Ruf zu Dir BWV 638</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
         <key pname="f" mode="minor"/>
@@ -198,3 +198,4 @@
   </music>
 
 </mei>
+
