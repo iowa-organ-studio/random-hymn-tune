@@ -6,8 +6,6 @@
   <title>Tune Catalog</title>
   <style>
     :root{
-      --panel-gap:8px;--panel-pad:8px;
-
       --gold:#FFC600;--gold-border:#d7a900;
       --gold-lite:#FFEFAD;--gold-lite-border:#E6D48A;--gold-lite-hover:#FFE68A;
 
@@ -26,11 +24,9 @@
     }
 
     .topbar{ display:block; margin-bottom:10px; }
-
     .titleblock h1{ margin:0; font-size:1.25rem; }
     .titleblock .sub{ margin:4px 0 0; color:var(--muted); font-size:.95rem; }
 
-    /* matches index.html link look */
     .navLink{
       display:inline-block;
       margin-top:6px;
@@ -109,9 +105,6 @@
     }
     tbody tr:hover{ background:#fcfcff; }
 
-    .col-title{ display:flex; align-items:flex-start; gap:10px; }
-
-    /* clickable but NOT blue/bold like a link */
     .titleLink{
       color:var(--text);
       text-decoration:none;
@@ -137,11 +130,6 @@
       line-height:1.2;
       white-space:nowrap;
     }
-    .pill.active{
-      background:var(--gold-lite);
-      border-color:var(--gold-lite-border);
-      color:#3b2f00;
-    }
 
     .checkbox{
       display:inline-flex; align-items:center; gap:8px;
@@ -155,37 +143,70 @@
 
     .right{ text-align:right; white-space:nowrap; }
 
-    /* Engraving viewer */
-    #engravePanel{ display:none; }
-    #engraveHeader{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px; flex-wrap:wrap;
-      margin-bottom:8px;
-    }
-    #engraveTitle{
-      font-weight:900;
-      font-size:1.05rem;
-      margin:0;
-    }
-    #engraveMeta{
-      color:var(--muted);
-      font-size:.9rem;
-      margin-top:2px;
-    }
-    #viewer{
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:4px;
-      min-height:140px;
-      overflow:auto;
-    }
-    #svg svg{ display:block; }
-
     footer{
       margin-top:10px;
       color:var(--muted);
       font-size:.85rem;
+    }
+
+    /* ===============================
+       Modal Preview (hovering window)
+       =============================== */
+    #previewOverlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+      z-index:9999;
+    }
+    #previewOverlay.show{ display:block; }
+
+    #previewModal{
+      position:absolute;
+      left:50%; top:50%;
+      transform:translate(-50%,-50%);
+      width:min(1100px, calc(100vw - 24px));
+      max-height:calc(100vh - 24px);
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:12px;
+      box-shadow:0 14px 50px rgba(0,0,0,.25);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+
+    #previewHeader{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    #previewTitle{
+      margin:0;
+      font-weight:900;
+      font-size:1.05rem;
+      line-height:1.1;
+    }
+    #previewMeta{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:.9rem;
+      font-weight:600;
+    }
+
+    #previewBody{
+      padding:8px;
+      overflow:auto;
+      background:#fff;
+    }
+    #previewSvg svg{ display:block; }
+
+    /* small screens: more space for the music */
+    @media (max-width: 600px){
+      #previewHeader{ padding:8px 10px; }
+      #previewBody{ padding:6px; }
     }
   </style>
 </head>
@@ -208,17 +229,6 @@
     </div>
   </div>
 
-  <div class="panel" id="engravePanel">
-    <div id="engraveHeader">
-      <div>
-        <div id="engraveTitle">—</div>
-        <div id="engraveMeta">—</div>
-      </div>
-      <button class="btn" id="closeEngraveBtn" type="button">Close</button>
-    </div>
-    <div id="viewer"><div id="svg"></div></div>
-  </div>
-
   <div class="tableWrap">
     <table id="tuneTable" aria-label="Tune catalog">
       <thead>
@@ -239,6 +249,24 @@
   <footer>
     Tip: “My Collection” is stored locally (in your browser) via <code>localStorage</code> and will match what the generator uses.
   </footer>
+
+  <!-- ===============================
+       Modal Preview markup
+       =============================== -->
+  <div id="previewOverlay" role="dialog" aria-modal="true" aria-label="Tune preview">
+    <div id="previewModal">
+      <div id="previewHeader">
+        <div>
+          <div id="previewTitle">—</div>
+          <div id="previewMeta">—</div>
+        </div>
+        <button class="btn" id="previewCloseBtn" type="button">Close</button>
+      </div>
+      <div id="previewBody">
+        <div id="previewSvg"></div>
+      </div>
+    </div>
+  </div>
 
 <script>
 /* ===============================
@@ -309,7 +337,7 @@ async function discoverTunes(){
 }
 
 /* ===============================
-   MEI metadata parsing (same rules as index)
+   MEI metadata parsing
    =============================== */
 const MEI_NS = "http://www.music-encoding.org/ns/mei";
 const METADATA_CACHE_VERSION = 6;
@@ -505,11 +533,7 @@ function renderTable(){
           </label>
         </td>
         <td>
-          <div class="col-title">
-            <div>
-              <a href="#" class="titleLink" data-engrave="${escapeHtml(r.file)}">${escapeHtml(r.title || "—")}</a>
-            </div>
-          </div>
+          <a href="#" class="titleLink" data-engrave="${escapeHtml(r.file)}">${escapeHtml(r.title || "—")}</a>
         </td>
         <td>${colPills}</td>
         <td>${mode}</td>
@@ -531,10 +555,39 @@ function renderTable(){
   tbody.querySelectorAll('a.titleLink[data-engrave]').forEach(a => {
     a.addEventListener("click", async (e) => {
       e.preventDefault();
-      await engraveTune(a.getAttribute("data-engrave"));
+      await previewTune(a.getAttribute("data-engrave"));
     });
   });
 }
+
+function setSort(key){
+  if (sortKey === key) sortDir = (sortDir === "asc") ? "desc" : "asc";
+  else { sortKey = key; sortDir = "asc"; }
+  renderTable();
+}
+
+/* ===============================
+   Modal Preview helpers
+   =============================== */
+const overlay = document.getElementById("previewOverlay");
+const closeBtn = document.getElementById("previewCloseBtn");
+const previewSvg = document.getElementById("previewSvg");
+
+function openPreview(){
+  overlay.classList.add("show");
+}
+function closePreview(){
+  overlay.classList.remove("show");
+  previewSvg.innerHTML = "";
+}
+closeBtn.addEventListener("click", closePreview);
+overlay.addEventListener("click", (e) => {
+  // clicking outside the modal closes
+  if (e.target === overlay) closePreview();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && overlay.classList.contains("show")) closePreview();
+});
 
 /* ===============================
    Verovio engraving
@@ -564,16 +617,15 @@ function stripMeiTitle(meiText){
   }
 }
 
-function computeResponsivePageWidth(){
-  const viewer = document.getElementById("viewer");
-  const w = viewer ? viewer.clientWidth : 900;
-  return Math.max(1200, Math.floor(w * 2.0));
+function computePreviewPageWidth(){
+  const modalBody = document.getElementById("previewBody");
+  const w = modalBody ? modalBody.clientWidth : 900;
+  return Math.max(1100, Math.floor(w * 2.0));
 }
 
-function trimSvgWhitespace(svgHostId = "svg", pad = 12){
-  const host = document.getElementById(svgHostId);
-  if (!host) return;
-  const svg = host.querySelector("svg");
+// Nuclear whitespace trim
+function trimSvgWhitespace(hostEl, pad = 12){
+  const svg = hostEl ? hostEl.querySelector("svg") : null;
   if (!svg) return;
 
   if (!svg.getAttribute("viewBox")){
@@ -640,35 +692,36 @@ async function ensureVerovio(){
   });
 }
 
-async function engraveTune(file){
+async function previewTune(file){
   await ensureVerovio();
 
+  // header
   const md = await getMetadata(file);
   const title = (md.title || "—").trim();
   const cols = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
   const mode = md.keyMode ? (md.keyMode.toLowerCase() === "minor" ? "Minor" : "Major") : "—";
   const meter = md.meterSig || "—";
 
-  document.getElementById("engraveTitle").textContent = title;
-  document.getElementById("engraveMeta").textContent =
+  document.getElementById("previewTitle").textContent = title;
+  document.getElementById("previewMeta").textContent =
     `Collections: ${cols.length ? cols.join("; ") : "—"} | Mode: ${mode} | Meter: ${meter}`;
+
+  openPreview();
+  previewSvg.innerHTML = `<div style="color:#666;padding:10px;">Engraving…</div>`;
 
   let mei = await fetchMei(file);
   mei = stripMeiTitle(mei);
 
   vrvToolkit.setOptions({
     ...engraveOptionsBase,
-    pageWidth: computeResponsivePageWidth()
+    pageWidth: computePreviewPageWidth()
   });
 
   vrvToolkit.loadData(mei);
   const svg = vrvToolkit.renderToSVG(1, {});
-  document.getElementById("svg").innerHTML = svg;
-  trimSvgWhitespace("svg", 12);
+  previewSvg.innerHTML = svg;
 
-  const panel = document.getElementById("engravePanel");
-  panel.style.display = "block";
-  panel.scrollIntoView({ behavior:"smooth", block:"start" });
+  trimSvgWhitespace(previewSvg, 12);
 }
 
 /* ===============================
@@ -684,18 +737,12 @@ async function buildRows(){
       const mode = md.keyMode ? (md.keyMode.toLowerCase() === "minor" ? "Minor" : "Major") : "";
       const meter = md.meterSig || "";
       out.push({ file:f, title, collections: cols, mode, meter });
-    }catch(e){
+    }catch{
       const fallback = f.split("/").pop().replace(/\.mei$/i,"") || "—";
       out.push({ file:f, title:fallback, collections:[], mode:"", meter:"" });
     }
   }
   return out;
-}
-
-function setSort(key){
-  if (sortKey === key) sortDir = (sortDir === "asc") ? "desc" : "asc";
-  else { sortKey = key; sortDir = "asc"; }
-  renderTable();
 }
 
 async function init(){
@@ -714,11 +761,6 @@ async function init(){
     filterText = "";
     renderTable();
     searchBox.focus();
-  });
-
-  document.getElementById("closeEngraveBtn").addEventListener("click", () => {
-    document.getElementById("engravePanel").style.display = "none";
-    document.getElementById("svg").innerHTML = "";
   });
 
   await discoverTunes();
