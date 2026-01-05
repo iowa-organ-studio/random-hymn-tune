@@ -4,7 +4,7 @@
     <fileDesc>
       <titleStmt>
                  <!-- ***Title*** -->
-        <title>Freu' Dich Sehr</title>
+        <title>Psalm 42 (Freu' dich)</title>
       </titleStmt>
       <pubStmt>
         <respStmt><resp>Generated example</resp></respStmt>
@@ -16,7 +16,7 @@
     <workDesc>
       <work>
                    <!-- ******Title******** -->
-        <title>Freu' Dich Sehr</title>
+        <title>Psalm 42 (Freu' dich)</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
         <key pname="g" mode="major"/>
@@ -25,7 +25,7 @@
         <annot type="meterGroup">Triple</annot>
 
                     <!-- ******Collection *********-->
-        <identifier type="collection">GH favorite</identifier>
+        <identifier type="collection">Hymnal 1982</identifier>
       </work>
     </workDesc>
   </meiHead>
@@ -188,4 +188,5 @@
   </music>
 
 </mei>
+
 
