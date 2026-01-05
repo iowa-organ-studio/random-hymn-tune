@@ -123,6 +123,12 @@
       white-space:nowrap;
     }
 
+    /* Nicer spacing when multiple collection pills wrap */
+    td .pill{
+      margin-right:4px;
+      margin-bottom:4px;
+    }
+
     /* ---------- Engraving viewer ---------- */
     #viewerCard{
       background:var(--card);
@@ -406,12 +412,11 @@
       const meterSig = meterSigFromXml(xml);
 
       const collections = collectionsFromXml(xml);
-      const collection  = collections.length ? collections[0] : "";
 
       const titleEl = firstByTagNS(xml, "title");
       const title = (titleEl?.textContent || "").trim();
 
-      const out = { keyMode, collection, collections, meterSig, title, __v: METADATA_CACHE_VERSION };
+      const out = { keyMode, collections, meterSig, title, __v: METADATA_CACHE_VERSION };
       metadataCache[fileName] = out;
       return out;
     }
@@ -472,8 +477,6 @@
         await ensureVerovio();
 
         let meiText = await fetchMei(row.file);
-
-        // Key part: prevent Verovio from rendering its own title above the music
         meiText = stripMeiTitle(meiText);
 
         vrvToolkit.setOptions({
@@ -501,7 +504,7 @@
 
         const labelParts = [];
         if (row.title) labelParts.push(row.title);
-        if (row.collection) labelParts.push(row.collection);
+        if (row.collections && row.collections.length) labelParts.push(row.collections.join("; "));
         if (row.mode) labelParts.push(row.mode);
         if (row.meter) labelParts.push(row.meter);
 
@@ -547,7 +550,7 @@
       const getVal = (r) => {
         if (sortKey === "mode") return r.mode || "";
         if (sortKey === "meter") return r.meter || "";
-        if (sortKey === "collection") return r.collection || "";
+        if (sortKey === "collection") return (r.collections && r.collections[0]) || "";
         return r.title || "";
       };
 
@@ -561,7 +564,12 @@
         return;
       }
       const hits = state.rows.filter(r => {
-        const hay = [r.title, r.collection, r.mode, r.meter].map(x => normalize(x).toLowerCase()).join("  ");
+        const hay = [
+          r.title,
+          ...(r.collections || []),
+          r.mode,
+          r.meter
+        ].map(x => normalize(x).toLowerCase()).join("  ");
         return hay.includes(q);
       });
       state.filtered = sortRows(hits);
@@ -623,16 +631,19 @@
 
       const rowsHtml = state.filtered.map((r, idx) => {
         const title = esc(r.title || "—");
-        const col   = esc(r.collection || "—");
         const mode  = esc(r.mode || "—");
         const meter = esc(r.meter || "—");
+
+        const colHtml = (r.collections && r.collections.length)
+          ? r.collections.map(c => `<span class="pill">${esc(c)}</span>`).join(" ")
+          : `<span class="pill">—</span>`;
 
         return `
           <tr>
             <td>
               <a href="#" data-row="${idx}" class="engraveLink" title="Engrave this tune">${title}</a>
             </td>
-            <td><span class="pill">${col}</span></td>
+            <td>${colHtml}</td>
             <td><span class="pill">${mode}</span></td>
             <td><span class="pill">${meter}</span></td>
           </tr>`;
@@ -660,11 +671,12 @@
     }
 
     function exportCsv(){
-      const header = ["Title","Collection","Mode","Meter"];
+      const header = ["Title","Collections","Mode","Meter"];
       const lines = [header.map(toCsvCell).join(",")];
 
       for (const r of state.filtered){
-        lines.push([r.title, r.collection, r.mode, r.meter].map(toCsvCell).join(","));
+        const collectionsJoined = (r.collections && r.collections.length) ? r.collections.join("; ") : "";
+        lines.push([r.title, collectionsJoined, r.mode, r.meter].map(toCsvCell).join(","));
       }
 
       const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
@@ -695,12 +707,15 @@
         try{
           const md = await getMetadata(f);
           const title = normalize(md.title) || fileBaseName(f);
-          const collections = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
-          const collection = normalize(collections.join("; "));
+
+          const collections = (md.collections && md.collections.length)
+            ? md.collections
+            : (md.collection ? [md.collection] : []);
+
           const mode = modeLabel(md.keyMode);
           const meter = normalize(md.meterSig || "");
 
-          rows.push({ file: f, title, collection, mode, meter });
+          rows.push({ file: f, title, collections, mode, meter });
         }catch(e){
           console.warn("Skipping unreadable MEI:", f, e);
         }
