@@ -80,7 +80,7 @@
 
     table{
       border-collapse:separate;border-spacing:0;width:100%;
-      min-width:720px;
+      min-width:820px;
     }
 
     thead th{
@@ -101,7 +101,6 @@
 
     tbody tr:hover{background:#fafafa}
     .muted{color:var(--muted)}
-    .right{text-align:right}
 
     .sort-ind{
       margin-left:6px;
@@ -127,6 +126,16 @@
     td .pill{
       margin-right:4px;
       margin-bottom:4px;
+    }
+
+    /* ---------- My Collection checkbox ---------- */
+    .mychk{
+      width:16px;height:16px;
+      accent-color: #0a64dc;
+      cursor:pointer;
+    }
+    .fav-col{
+      width:42px;
     }
 
     /* ---------- Engraving viewer ---------- */
@@ -169,7 +178,7 @@
   <header>
     <div>
       <h1>Tune Catalog</h1>
-      <div class="sub">Click headers to sort. Click a title to engrave the tune below.</div>
+      <div class="sub">Click headers to sort. Use the checkbox to add to <b>My Collection</b> (saved locally). Click a title to engrave below.</div>
     </div>
     <div class="status-badge" id="status">Loading…</div>
   </header>
@@ -204,6 +213,7 @@
     <table id="tuneTable">
       <thead>
         <tr>
+          <th class="fav-col" data-key="mine" title="My Collection">★ <span class="sort-ind" id="ind-mine">↕</span></th>
           <th data-key="title">Title <span class="sort-ind" id="ind-title">↕</span></th>
           <th data-key="collection">Collection <span class="sort-ind" id="ind-collection">↕</span></th>
           <th data-key="mode">Mode <span class="sort-ind" id="ind-mode">↕</span></th>
@@ -211,7 +221,7 @@
         </tr>
       </thead>
       <tbody id="tbody">
-        <tr><td colspan="4" class="muted">Loading…</td></tr>
+        <tr><td colspan="5" class="muted">Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -220,7 +230,27 @@
 
   <script>
     // --------------------------------------------
-    // Tune discovery (same approach as your app)
+    // Local-only "My Collection"
+    // --------------------------------------------
+    const MY_KEY = "tuneCatalog.myCollection.v1";
+    let mySet = new Set();
+
+    function loadMySet(){
+      try{
+        const raw = localStorage.getItem(MY_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        mySet = new Set(Array.isArray(arr) ? arr : []);
+      }catch{
+        mySet = new Set();
+      }
+    }
+    function saveMySet(){
+      localStorage.setItem(MY_KEY, JSON.stringify(Array.from(mySet)));
+    }
+    function isMine(file){ return mySet.has(file); }
+
+    // --------------------------------------------
+    // Tune discovery
     // --------------------------------------------
     let tuneFiles = [];
 
@@ -244,7 +274,7 @@
         console.warn("Manifest fetch/parsing failed:", e);
       }
 
-      // 2) Fallback: try directory listing (works on some servers)
+      // 2) Fallback: try directory listing
       try {
         const res = await fetch(`tunes/?_=${Date.now()}`, { cache: 'no-cache' });
         if (res.ok) {
@@ -272,7 +302,7 @@
     }
 
     // --------------------------------------------
-    // Metadata extraction (reused from your app)
+    // Metadata extraction
     // --------------------------------------------
     const MEI_NS = "http://www.music-encoding.org/ns/mei";
 
@@ -410,7 +440,6 @@
 
       const keyMode  = (keyEl?.getAttribute("mode")  || "").trim().toLowerCase();
       const meterSig = meterSigFromXml(xml);
-
       const collections = collectionsFromXml(xml);
 
       const titleEl = firstByTagNS(xml, "title");
@@ -504,7 +533,12 @@
 
         const labelParts = [];
         if (row.title) labelParts.push(row.title);
-        if (row.collections && row.collections.length) labelParts.push(row.collections.join("; "));
+
+        const mineTag = isMine(row.file) ? "My Collection" : "";
+        const collectionsLabel = (row.collections && row.collections.length) ? row.collections.join("; ") : "";
+        const cols = [mineTag, collectionsLabel].filter(Boolean).join(" • ");
+        if (cols) labelParts.push(cols);
+
         if (row.mode) labelParts.push(row.mode);
         if (row.meter) labelParts.push(row.meter);
 
@@ -548,6 +582,7 @@
       const dir = sortDir === "desc" ? -1 : 1;
 
       const getVal = (r) => {
+        if (sortKey === "mine") return isMine(r.file) ? "0" : "1"; // favorites first
         if (sortKey === "mode") return r.mode || "";
         if (sortKey === "meter") return r.meter || "";
         if (sortKey === "collection") return (r.collections && r.collections[0]) || "";
@@ -568,7 +603,8 @@
           r.title,
           ...(r.collections || []),
           r.mode,
-          r.meter
+          r.meter,
+          isMine(r.file) ? "my collection" : ""
         ].map(x => normalize(x).toLowerCase()).join("  ");
         return hay.includes(q);
       });
@@ -588,7 +624,7 @@
     }
 
     function updateSortIndicators(){
-      const keys = ["title","collection","mode","meter"];
+      const keys = ["mine","title","collection","mode","meter"];
       keys.forEach(k => {
         const el = document.getElementById(`ind-${k}`);
         if (!el) return;
@@ -598,7 +634,7 @@
       });
 
       const sortBadge = document.getElementById("sortBadge");
-      const pretty = state.sortKey.charAt(0).toUpperCase() + state.sortKey.slice(1);
+      const pretty = state.sortKey === "mine" ? "My Collection" : (state.sortKey.charAt(0).toUpperCase() + state.sortKey.slice(1));
       if (sortBadge) sortBadge.textContent = `Sort: ${pretty} (${state.sortDir})`;
     }
 
@@ -625,7 +661,7 @@
       updateCounts();
 
       if (!state.filtered.length){
-        tbody.innerHTML = `<tr><td colspan="4" class="muted">No matches.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="muted">No matches.</td></tr>`;
         return;
       }
 
@@ -634,16 +670,24 @@
         const mode  = esc(r.mode || "—");
         const meter = esc(r.meter || "—");
 
+        const mineChecked = isMine(r.file) ? "checked" : "";
+
         const colHtml = (r.collections && r.collections.length)
           ? r.collections.map(c => `<span class="pill">${esc(c)}</span>`).join(" ")
           : `<span class="pill">—</span>`;
 
+        const minePill = isMine(r.file) ? `<span class="pill">My Collection</span>` : "";
+
         return `
           <tr>
+            <td class="fav-col">
+              <input class="mychk" type="checkbox" data-file="${esc(r.file)}" ${mineChecked}
+                     title="Add/remove from My Collection" />
+            </td>
             <td>
               <a href="#" data-row="${idx}" class="engraveLink" title="Engrave this tune">${title}</a>
             </td>
-            <td>${colHtml}</td>
+            <td>${minePill} ${colHtml}</td>
             <td><span class="pill">${mode}</span></td>
             <td><span class="pill">${meter}</span></td>
           </tr>`;
@@ -659,6 +703,20 @@
           if (row) engraveTune(row);
         });
       });
+
+      tbody.querySelectorAll("input.mychk").forEach(chk => {
+        chk.addEventListener("change", () => {
+          const f = chk.getAttribute("data-file") || "";
+          if (!f) return;
+          if (chk.checked) mySet.add(f);
+          else mySet.delete(f);
+          saveMySet();
+
+          // Re-render to update pills + sort "mine" if active
+          applySearch();
+          renderTable();
+        });
+      });
     }
 
     // --------------------------------------------
@@ -671,12 +729,19 @@
     }
 
     function exportCsv(){
-      const header = ["Title","Collections","Mode","Meter"];
+      const header = ["In My Collection","Title","Collections","Mode","Meter","File"];
       const lines = [header.map(toCsvCell).join(",")];
 
       for (const r of state.filtered){
         const collectionsJoined = (r.collections && r.collections.length) ? r.collections.join("; ") : "";
-        lines.push([r.title, collectionsJoined, r.mode, r.meter].map(toCsvCell).join(","));
+        lines.push([
+          isMine(r.file) ? "yes" : "no",
+          r.title,
+          collectionsJoined,
+          r.mode,
+          r.meter,
+          r.file
+        ].map(toCsvCell).join(","));
       }
 
       const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
@@ -743,7 +808,7 @@
       if (!tuneFiles.length){
         setStatus("No tunes found (tunes.json missing and /tunes listing unavailable).");
         document.getElementById("tbody").innerHTML =
-          `<tr><td colspan="4" class="muted">No tunes found. Add <code>tunes.json</code> or enable directory listing.</td></tr>`;
+          `<tr><td colspan="5" class="muted">No tunes found. Add <code>tunes.json</code> or enable directory listing.</td></tr>`;
         document.getElementById("countBadge").textContent = "Rows: 0 / 0";
         updateSortIndicators();
         return;
@@ -788,9 +853,17 @@
         document.getElementById("viewerCard").style.display = "none";
         document.getElementById("svg").innerHTML = "";
       });
+
+      // Keep engraving width responsive
+      window.addEventListener("resize", () => {
+        if (document.getElementById("viewerCard").style.display !== "none" && vrvToolkit) {
+          // no auto re-render to avoid sluggishness; click title again if needed
+        }
+      });
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
+      loadMySet();
       wireEvents();
       updateSortIndicators();
       await reloadAll();
