@@ -25,22 +25,15 @@
       margin:0; padding:12px; background:var(--bg); color:var(--text);
     }
 
-    .topbar{
-      display:block;
-      margin-bottom:10px;
-    }
+    .topbar{ display:block; margin-bottom:10px; }
 
-    .titleblock h1{
-      margin:0; font-size:1.25rem;
-    }
-    .titleblock .sub{
-      margin:4px 0 0; color:var(--muted); font-size:.95rem;
-    }
+    .titleblock h1{ margin:0; font-size:1.25rem; }
+    .titleblock .sub{ margin:4px 0 0; color:var(--muted); font-size:.95rem; }
 
     /* matches index.html link look */
     .navLink{
       display:inline-block;
-      margin-top:6px;              /* sits under subtitle */
+      margin-top:6px;
       font-size:1rem;
       font-weight:700;
       text-decoration:none;
@@ -56,9 +49,7 @@
       margin-bottom:10px;
     }
 
-    .controls{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-    }
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .controls input[type="search"]{
       padding:8px 10px;
       border:1px solid var(--border);
@@ -67,10 +58,7 @@
       font-size:.95rem;
       background:#fff;
     }
-    .controls .note{
-      color:var(--muted);
-      font-size:.9rem;
-    }
+    .controls .note{ color:var(--muted); font-size:.9rem; }
 
     .btn{
       border:1px solid var(--gold-lite-border);
@@ -116,16 +104,14 @@
       padding:10px;
       vertical-align:top;
       font-size:.95rem;
-      font-weight:400; /* ensure normal weight in table cells */
+      font-weight:400;
       color:var(--text);
     }
     tbody tr:hover{ background:#fcfcff; }
 
-    .col-title{
-      display:flex; align-items:flex-start; gap:10px;
-    }
+    .col-title{ display:flex; align-items:flex-start; gap:10px; }
 
-    /* IMPORTANT: clickable but NOT blue/bold like a link */
+    /* clickable but NOT blue/bold like a link */
     .titleLink{
       color:var(--text);
       text-decoration:none;
@@ -138,19 +124,7 @@
       color:var(--btn-blue);
     }
 
-    .fileHint{
-      display:block;
-      margin-top:4px;
-      color:var(--muted);
-      font-size:.82rem;
-      font-weight:600;
-    }
-
-    .pills{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-    }
+    .pills{ display:flex; flex-wrap:wrap; gap:6px; }
     .pill{
       display:inline-block;
       padding:2px 8px;
@@ -177,14 +151,9 @@
       background:#fff;
       font-weight:700;
     }
-    .checkbox input{
-      width:16px; height:16px;
-    }
+    .checkbox input{ width:16px; height:16px; }
 
-    .right{
-      text-align:right;
-      white-space:nowrap;
-    }
+    .right{ text-align:right; white-space:nowrap; }
 
     /* Engraving viewer */
     #engravePanel{ display:none; }
@@ -227,7 +196,6 @@
     <div class="titleblock">
       <h1>Tune Catalog</h1>
       <div class="sub">Sortable list of tunes in <code>/tunes</code>. Click a title to engrave it.</div>
-      <!-- moved + left-justified under subtitle -->
       <a class="navLink" href="index.html">Back to the Random Hymn Tune Generator</a>
     </div>
   </div>
@@ -276,7 +244,6 @@
 /* ===============================
    Shared local-only My Collection
    =============================== */
-const MY_LABEL = "My Collection";
 const MY_KEY   = "tuneCatalog.myCollection.v1";
 
 function getMySet(){
@@ -346,8 +313,8 @@ async function discoverTunes(){
    =============================== */
 const MEI_NS = "http://www.music-encoding.org/ns/mei";
 const METADATA_CACHE_VERSION = 6;
-const meiCache = {};       // filename -> text
-const mdCache  = {};       // filename -> metadata
+const meiCache = {};
+const mdCache  = {};
 
 function nodelistToArray(nl){ return Array.prototype.slice.call(nl || []); }
 function allByTagNS(xml, tag){ return nodelistToArray(xml.getElementsByTagNameNS(MEI_NS, tag)); }
@@ -382,16 +349,10 @@ function parseCommentMetadataFromXml(xmlDoc){
   }
   if (!lines.length) return null;
 
-  const md = { keyMode:"", keyTonic:"", meterSig:"", collection:"", collections:[], title:"" };
+  const md = { keyMode:"", meterSig:"", collection:"", collections:[], title:"" };
 
   for (const line of lines){
-    let mm = line.match(/^key\s*:\s*([A-Ga-g])([#bB])?\s+(major|minor)\s*$/i);
-    if (mm){ md.keyTonic = mm[1].toUpperCase() + ((mm[2]||"").replace("B","b")); md.keyMode = mm[3].toLowerCase(); continue; }
-
-    mm = line.match(/^keyTonic\s*:\s*([A-Ga-g])([#bB])?\s*$/i);
-    if (mm){ md.keyTonic = mm[1].toUpperCase() + ((mm[2]||"").replace("B","b")); continue; }
-
-    mm = line.match(/^keyMode\s*:\s*(major|minor)\s*$/i);
+    let mm = line.match(/^keyMode\s*:\s*(major|minor)\s*$/i);
     if (mm){ md.keyMode = mm[1].toLowerCase(); continue; }
 
     mm = line.match(/^meterSig\s*:\s*(\d+)\s*\/\s*(\d+)\s*$/i);
@@ -409,7 +370,7 @@ function parseCommentMetadataFromXml(xmlDoc){
     if (mm){ md.title = mm[1].trim(); continue; }
   }
 
-  const hasSomething = ["keyMode","keyTonic","meterSig","collection","title"].some(k => md[k]);
+  const hasSomething = ["keyMode","meterSig","collection","title"].some(k => md[k]);
   return hasSomething ? md : null;
 }
 
@@ -471,7 +432,7 @@ async function getMetadata(fileName){
 /* ===============================
    Table state + rendering
    =============================== */
-let rows = []; // {file,title,collections[],mode,meter}
+let rows = [];
 let sortKey = "title";
 let sortDir = "asc";
 let filterText = "";
@@ -535,7 +496,6 @@ function renderTable(){
 
     const mode = r.mode ? escapeHtml(r.mode) : "—";
     const meter = r.meter ? escapeHtml(r.meter) : "—";
-    const fileHint = escapeHtml(r.file.split("/").pop());
 
     return `
       <tr>
@@ -547,8 +507,7 @@ function renderTable(){
         <td>
           <div class="col-title">
             <div>
-              <a href="#" class="titleLink" data-engrave="${escapeHtml(r.file)}">${escapeHtml(r.title || fileHint.replace(/\\.mei$/i,""))}</a>
-              <span class="fileHint">${fileHint}</span>
+              <a href="#" class="titleLink" data-engrave="${escapeHtml(r.file)}">${escapeHtml(r.title || "—")}</a>
             </div>
           </div>
         </td>
@@ -685,7 +644,7 @@ async function engraveTune(file){
   await ensureVerovio();
 
   const md = await getMetadata(file);
-  const title = (md.title || file.split("/").pop().replace(/\.mei$/i,"") || "—").trim();
+  const title = (md.title || "—").trim();
   const cols = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
   const mode = md.keyMode ? (md.keyMode.toLowerCase() === "minor" ? "Minor" : "Major") : "—";
   const meter = md.meterSig || "—";
@@ -720,13 +679,13 @@ async function buildRows(){
   for (const f of tuneFiles){
     try{
       const md = await getMetadata(f);
-      const title = (md.title || f.split("/").pop().replace(/\.mei$/i,"") || "").trim();
+      const title = (md.title || f.split("/").pop().replace(/\.mei$/i,"") || "—").trim();
       const cols = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
       const mode = md.keyMode ? (md.keyMode.toLowerCase() === "minor" ? "Minor" : "Major") : "";
       const meter = md.meterSig || "";
       out.push({ file:f, title, collections: cols, mode, meter });
     }catch(e){
-      const fallback = f.split("/").pop().replace(/\.mei$/i,"");
+      const fallback = f.split("/").pop().replace(/\.mei$/i,"") || "—";
       out.push({ file:f, title:fallback, collections:[], mode:"", meter:"" });
     }
   }
