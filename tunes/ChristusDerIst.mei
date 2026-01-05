@@ -4,7 +4,7 @@
     <fileDesc>
       <titleStmt>
                  <!-- ***Title*** -->
-        <title>Ach Bleib</title>
+        <title>Christus, der ist Mein Leben</title>
       </titleStmt>
       <pubStmt>
         <respStmt><resp>Generated example</resp></respStmt>
@@ -16,7 +16,7 @@
     <workDesc>
       <work>
                    <!-- ******Title******** -->
-        <title>Ach Bleibv</title>
+        <title>Christus, der ist Mein Leben</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
         <key pname="e" accid="f" mode="major"/>
@@ -25,7 +25,7 @@
         <annot type="meterGroup">Duple</annot>
 
                     <!-- ******Collection *********-->
-        <identifier type="collection">GH favorite</identifier>
+        <identifier type="collection">Hymnal 1982</identifier>
       </work>
     </workDesc>
   </meiHead>
@@ -137,4 +137,5 @@
   </music>
 
 </mei>
+
 
