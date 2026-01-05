@@ -182,20 +182,29 @@
   </div>
 
   <footer>
-  <p style="margin:0">
-    <a href="catalog.html"
-       style="font-size:.85rem;text-decoration:none;color:#0a64dc">
-      Tune Catalog
-    </a>
-  </p>
-  <p style="margin-top:4px">created for the University of Iowa Organ Studio</p>
-</footer>
+    <p style="margin:0">
+      <a href="catalog.html" style="font-size:.85rem;text-decoration:none;color:#0a64dc">Tune Catalog</a>
+    </p>
+    <p style="margin-top:4px">created for the University of Iowa Organ Studio</p>
+  </footer>
 
   <script>
     // ------------------------------
     // Config & state
     // ------------------------------
     let tuneFiles = [];
+
+    // --- Local-only "My Collection" (shared with catalog.html) ---
+    const MY_KEY = "tuneCatalog.myCollection.v1";
+    function getMyCollectionSet(){
+      try{
+        const raw = localStorage.getItem(MY_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return new Set(Array.isArray(arr) ? arr : []);
+      }catch{
+        return new Set();
+      }
+    }
 
     // DEFAULT: 0#/0♭ selected
     const accidentalsSelected = new Set([0]);
@@ -248,8 +257,8 @@
       spacingStaff: 8,
 
       // Horizontal spacing
-      spacingLinear: 0.22,
-      spacingNonLinear: 0.46,
+      spacingLinear: 0.16,
+      spacingNonLinear: 0.40,
       minMeasureWidth: 44,
 
       justifyVertically: false,
@@ -543,6 +552,10 @@
 
     async function buildCollectionsUIFromAllTunes() {
       clearRow("colRow");
+
+      // Always include local-only virtual collection
+      addPlainCheckboxes("colRow", ["My Collection"], false);
+
       const set = new Set();
       for (const f of tuneFiles) {
         try {
@@ -553,9 +566,7 @@
       }
       const list = Array.from(set).sort((a,b) => a.localeCompare(b));
       if (list.length === 0) {
-        addPlainCheckboxes("colRow", ["(no collections found)"], true);
-        const el = document.querySelector(`#colRow input[type="checkbox"]`);
-        if (el) el.disabled = true;
+        // still keep "My Collection" even if no real collections found
         return;
       }
       addPlainCheckboxes("colRow", list, true);
@@ -666,7 +677,6 @@
     function relativeMajorForMinorTonic(minorTonic){
       const mi = keyInfo(minorTonic, "minor");
       if (!mi) return "C";
-      // Same key signature (n+t) in major list
       const maj = KEY_DB.major.find(k => k.n === mi.n && k.t === mi.t);
       return maj ? maj.tonic : "C";
     }
@@ -676,7 +686,6 @@
       return KEY_DB[m].filter(k => selectedSet.has(k.n)).map(k => k.tonic);
     }
 
-    // Pitch class map for half-step buttons
     const PC = {
       "C":0,"C#":1,"Db":1,"D":2,"D#":3,"Eb":3,"E":4,"F":5,"F#":6,"Gb":6,
       "G":7,"G#":8,"Ab":8,"A":9,"A#":10,"Bb":10,"B":11,"Cb":11
@@ -690,12 +699,10 @@
     }
 
     function preferSpellingFromCurrent(pc, mode, currentTonic){
-      // If one candidate, return it.
       const cands = candidatesForPC(pc, mode);
       if (cands.length === 0) return (mode === "minor") ? "A" : "C";
       if (cands.length === 1) return cands[0];
 
-      // If user currently has a sharp spelling, step prefers sharp; if flat spelling, prefers flat.
       const wantsSharp = (currentTonic || "").includes("#");
       const wantsFlat  = (currentTonic || "").includes("b");
       if (wantsSharp) {
@@ -706,14 +713,9 @@
         const f = cands.find(x => x.includes("b"));
         if (f) return f;
       }
-
-      // Otherwise default: sharp first
       return cands.find(x => x.includes("#")) || cands[0];
     }
 
-    // ------------------------------
-    // Apply starting key to MEI (for correct naturals)
-    // ------------------------------
     function applyStartingKeyToMei(meiText, tonic, mode) {
       const sig = keySigString(tonic, mode);
       const m = (mode === "minor") ? "minor" : "major";
@@ -737,9 +739,6 @@
       return new XMLSerializer().serializeToString(xml);
     }
 
-    // ------------------------------
-    // Verovio transpose string
-    // ------------------------------
     function tonicToVerovioTransposeTonic(tonic) {
       const m = String(tonic || "").match(/^([A-Ga-g])([#bB])?$/);
       if (!m) return "";
@@ -754,8 +753,6 @@
       if (!currentTargetKey) return "";
 
       const mode = (currentMode === "minor") ? "minor" : "major";
-
-      // For Verovio transpose, use major tonic; if minor, use relative major of the *current target*.
       const tonicForVerovio = (mode === "minor")
         ? relativeMajorForMinorTonic(currentTargetKey)
         : currentTargetKey;
@@ -770,9 +767,6 @@
       return prefix + tonicParam;
     }
 
-    // ------------------------------
-    // Infer original tonic from MEI keysig (fallback)
-    // ------------------------------
     function readInitialKeySigFromXml(xml) {
       const scoreDefs = allByTagNS(xml, "scoreDef");
       const staffDefs = allByTagNS(xml, "staffDef");
@@ -796,25 +790,18 @@
       return found ? found.tonic : ((m === "minor") ? "A" : "C");
     }
 
-    // ------------------------------
-    // Responsive page width
-    // ------------------------------
     function computeResponsivePageWidth() {
       const viewer = document.getElementById('viewer');
       const w = viewer.clientWidth;
       return Math.max(1400, Math.floor(w * 2.25));
     }
 
-    // ------------------------------
-    // Rendering
-    // ------------------------------
     async function renderCurrent() {
       if (!currentFile || !vrvToolkit) return;
 
       let meiData = await fetchMei(currentFile);
       meiData = stripMeiTitle(meiData);
 
-      // Keep the file's original key signature consistent with its tonic/mode (for natural handling)
       if (originalTonic) {
         meiData = applyStartingKeyToMei(meiData, originalTonic, currentMode);
       }
@@ -876,6 +863,10 @@
       const meterSelected = getChecked('meterRow');
       const colSelected   = getChecked('colRow');
 
+      // local-only favorites set
+      const mySet = getMyCollectionSet();
+      const wantsMy = colSelected.includes("My Collection");
+
       const candidates = [];
       for (const f of tuneFiles) {
         try {
@@ -889,9 +880,14 @@
             : (md.meterSig ? meterSelected.includes(md.meterSig) : false);
 
           const tuneCollections = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
+          const isMine = mySet.has(f);
+
           const colOk = colSelected.length === 0
             ? true
-            : tuneCollections.some(c => colSelected.includes(c));
+            : (
+                (wantsMy && isMine) ||
+                tuneCollections.some(c => colSelected.includes(c))
+              );
 
           if (mmOk && meterOk && colOk) candidates.push(f);
         } catch (e) {
@@ -918,10 +914,8 @@
           originalTonic = inferTonicFromKeySig(currentMode, t, n);
         }
 
-        // Candidate target keys from KEY RANGE
         let allowedTonics = tonicsByAccidentalsSelected(currentMode, accidentalsSelected);
 
-        // Apply Exclude
         const excluded = new Set(getChecked('exRow'));
         allowedTonics = allowedTonics.filter(T => !excluded.has(T));
 
@@ -940,7 +934,6 @@
     async function octaveUp()   { octaveShift += 1; await renderCurrent(); }
     async function octaveDown() { octaveShift -= 1; await renderCurrent(); }
 
-    // Half-step buttons: change the ACTUAL target key (so status & music always match)
     async function halfStep(delta){
       if (!currentTargetKey) return;
       const pc = PC[currentTargetKey];
@@ -955,7 +948,6 @@
     async function halfStepUp(){ await halfStep(+1); }
     async function halfStepDown(){ await halfStep(-1); }
 
-    // Enharmonic toggle: ALWAYS swaps C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb when applicable
     async function toggleEnharmonic(){
       if (!currentTargetKey) return;
       const pair = ENHARMONIC_MAP[currentTargetKey];
@@ -969,7 +961,6 @@
     // Discover tunes
     // ------------------------------
     async function discoverTunes() {
-      // Try manifest first
       try {
         const res = await fetch(`tunes.json?_=${Date.now()}`, { cache: 'no-cache' });
         if (res.ok) {
@@ -987,7 +978,6 @@
         }
       } catch (e) { console.warn('Manifest fetch/parsing failed:', e); }
 
-      // Fallback: directory listing
       try {
         const res = await fetch(`tunes/?_=${Date.now()}`, { cache: 'no-cache' });
         if (res.ok) {
@@ -1010,9 +1000,6 @@
       console.warn('No tunes found (manifest missing and directory listing empty).');
     }
 
-    // ------------------------------
-    // Verovio loader (JS/WASM)
-    // ------------------------------
     function loadScript(src) {
       return new Promise((resolve, reject) => {
         const s = document.createElement('script');
@@ -1023,9 +1010,6 @@
       });
     }
 
-    // ------------------------------
-    // Init
-    // ------------------------------
     async function init() {
       addAccidentalRangeButtons("keysRangeRow");
       addExcludeCheckboxes("exRow", excludeTonics);
@@ -1119,5 +1103,3 @@
   </script>
 </body>
 </html>
-
-
