@@ -14,6 +14,10 @@
       --btn-lightblue:#5ab6ff;--btn-lightblue-hover:#3fa8ff;
       --btn-red:#d32f2f;--btn-red-hover:#b71c1c;
       --btn-pink:#ff6fb3;--btn-pink-hover:#ff4fa3;
+
+      /* NEW: green tuned to sit well with the gold palette */
+      --btn-green:#2f7d55;
+      --btn-green-hover:#256646;
     }
 
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:12px;background:#f7f7f9}
@@ -31,6 +35,10 @@
     .btn-oct{background:var(--btn-pink)} .btn-oct:hover{background:var(--btn-pink-hover)}
     .btn-spacing{background:var(--btn-blue)} .btn-spacing:hover{background:var(--btn-blue-hover)}
     .btn-music{background:var(--btn-lightblue);color:#042a46} .btn-music:hover{background:var(--btn-lightblue-hover)}
+
+    /* NEW: green enharmonic button */
+    .btn-enharm{background:var(--btn-green);color:#fff}
+    .btn-enharm:hover{background:var(--btn-green-hover)}
 
     .status-badge{
       padding:2px 8px;background:#fff;border:1px solid #ddd;border-radius:8px;
@@ -116,7 +124,16 @@
     }
     #svg{width:100%;height:auto}
     #svg svg{display:block}
+
     footer{margin-top:8px;color:#777;font-size:.85rem}
+    /* NEW: larger Tune Catalog link */
+    #catalogLink{
+      font-size:1rem;
+      font-weight:700;
+      text-decoration:none;
+      color:var(--btn-blue);
+    }
+    #catalogLink:hover{ text-decoration:underline; }
   </style>
 </head>
 <body>
@@ -129,7 +146,8 @@
     <button id="octUpBtn"   class="btn-oct" type="button" disabled title="Transpose up 8va">8va↑</button>
     <button id="octDownBtn" class="btn-oct" type="button" disabled title="Transpose down 8va">8va↓</button>
 
-    <button id="enharmonicBtn" class="btn-music" type="button" disabled title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
+    <!-- NEW: class is btn-enharm -->
+    <button id="enharmonicBtn" class="btn-enharm" type="button" disabled title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
 
     <button id="halfUpBtn" class="btn-music" type="button" disabled title="Transpose up a semitone">Half step ↑</button>
     <button id="halfDownBtn" class="btn-music" type="button" disabled title="Transpose down a semitone">Half step ↓</button>
@@ -213,7 +231,8 @@
 
   <footer>
     <p style="margin:0">
-      <a href="catalog.html" style="font-size:.85rem;text-decoration:none;color:#0a64dc">Tune Catalog</a>
+      <!-- NEW: larger + new wording -->
+      <a id="catalogLink" href="catalog.html">Tune Catalog — create custom “My Collection”</a>
     </p>
     <p style="margin-top:4px">created for the University of Iowa Organ Studio</p>
   </footer>
@@ -723,6 +742,38 @@
     }
 
     // ------------------------------
+    // NEW: SVG trim (nuclear whitespace removal)
+    // ------------------------------
+    function trimSvgWhitespace(svgHostId = "svg", pad = 12) {
+      const host = document.getElementById(svgHostId);
+      if (!host) return;
+
+      const svg = host.querySelector("svg");
+      if (!svg) return;
+
+      // Ensure there is a viewBox to adjust
+      if (!svg.getAttribute("viewBox")) {
+        const w = parseFloat(svg.getAttribute("width") || "0") || 0;
+        const h = parseFloat(svg.getAttribute("height") || "0") || 0;
+        if (w > 0 && h > 0) svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      }
+
+      try {
+        const box = svg.getBBox(); // tight bounds of drawn content
+        const x = Math.max(0, box.x - pad);
+        const y = Math.max(0, box.y - pad);
+        const w = box.width + pad * 2;
+        const h = box.height + pad * 2;
+
+        svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+        svg.removeAttribute("height"); // let CSS size it
+        svg.style.height = "auto";
+      } catch (e) {
+        // getBBox can fail rarely; ignore
+      }
+    }
+
+    // ------------------------------
     // Key database (NO normalization Cb->B; key sigs capped at 7)
     // ------------------------------
     const KEY_DB = {
@@ -938,6 +989,9 @@
 
       const svg = vrvToolkit.renderToSVG(1, {});
       document.getElementById('svg').innerHTML = svg;
+
+      /* NEW: trim excess whitespace produced by Verovio */
+      trimSvgWhitespace("svg", 12);
 
       updateScaleBadge();
       updateSpacingBadge();
