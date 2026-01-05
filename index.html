@@ -85,7 +85,7 @@
     #titleBar .title-item span.value{font-weight:600}
     #titleBar .divider{opacity:.35}
 
-    /* ---- Pills for collection status ---- */
+    /* ---- Pills for CURRENT TUNE collections ---- */
     .colPills{
       display:inline-flex;
       align-items:center;
@@ -153,7 +153,7 @@
     <div class="title-item">
       Collections:
       <span class="value">
-        <span id="collectionPills" class="colPills" aria-label="Collection filter status"></span>
+        <span id="collectionPills" class="colPills" aria-label="Collections for this tune"></span>
       </span>
     </div>
   </div>
@@ -222,7 +222,9 @@
     // ------------------------------
     // Local-only "My Collection" (shared with catalog.html)
     // ------------------------------
+    const MY_LABEL = "My Collection";
     const MY_KEY = "tuneCatalog.myCollection.v1";
+
     function getMyCollectionSet(){
       try{
         const raw = localStorage.getItem(MY_KEY);
@@ -270,6 +272,10 @@
 
     const MEI_NS = "http://www.music-encoding.org/ns/mei";
     const METADATA_CACHE_VERSION = 6;
+
+    // Track current tune's collections (for status pills)
+    let currentTuneCollections = []; // strings like ["1","3","4"] (from MEI)
+    let currentTuneIsMine = false;   // true if in local My Collection set
 
     // --- ENGRAVING OPTIONS ---
     const baseOptions = {
@@ -367,15 +373,8 @@
     }
 
     // ------------------------------
-    // Collection pills status (NEW)
+    // Collection pills status (CURRENT TUNE, colored if selected)
     // ------------------------------
-    function getAllCollectionValuesFromUI(){
-      return Array.from(document.querySelectorAll('#colRow input[type="checkbox"]'))
-        .filter(el => !el.disabled)
-        .map(el => String(el.value || "").trim())
-        .filter(Boolean);
-    }
-
     function getCheckedCollectionSetFromUI(){
       return new Set(
         Array.from(document.querySelectorAll('#colRow input[type="checkbox"]'))
@@ -385,52 +384,56 @@
       );
     }
 
-    function renderCollectionPillsStatus(){
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function renderCurrentTuneCollectionPills(){
       const host = document.getElementById('collectionPills');
       if (!host) return;
 
-      const values = Array.from(new Set(getAllCollectionValuesFromUI()));
       const checked = getCheckedCollectionSetFromUI();
 
-      // Split into checked / unchecked
-      let checkedList = values.filter(v => checked.has(v));
-      let uncheckedList = values.filter(v => !checked.has(v));
+      // Build the tune's collection list:
+      // - include its MEI collections
+      // - include "My Collection" only if this tune is in the local set
+      const set = new Set((currentTuneCollections || []).map(x => String(x || "").trim()).filter(Boolean));
+      if (currentTuneIsMine) set.add(MY_LABEL);
 
+      let list = Array.from(set);
+
+      // Order rules:
+      // - if My Collection is selected AND tune is mine -> show first
+      // - then alphabetical for the rest
       const alpha = (a,b) => a.localeCompare(b, undefined, { sensitivity:"base", numeric:true });
+      list.sort(alpha);
 
-      // Special rule: My Collection comes first if it is checked
-      const MY = "My Collection";
-      checkedList.sort(alpha);
-      uncheckedList.sort(alpha);
-
-      if (checked.has(MY)) {
-        checkedList = [MY, ...checkedList.filter(v => v !== MY)];
+      if (currentTuneIsMine && checked.has(MY_LABEL)) {
+        list = [MY_LABEL, ...list.filter(x => x !== MY_LABEL)];
       }
 
-      // Also ensure MY isn't duplicated in unchecked if present
-      uncheckedList = uncheckedList.filter(v => v !== MY || !checked.has(MY));
-
-      // Combine: checked first, then unchecked
-      const ordered = [...checkedList, ...uncheckedList];
-
-      if (ordered.length === 0){
+      if (list.length === 0) {
         host.innerHTML = `<span class="pill">—</span>`;
         return;
       }
 
-      host.innerHTML = ordered.map(v => {
-        const active = checked.has(v) ? ' active' : '';
-        const safe = v.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-        return `<span class="pill${active}">${safe}</span>`;
+      host.innerHTML = list.map(name => {
+        const active = checked.has(name) ? " active" : "";
+        return `<span class="pill${active}">${escapeHtml(name)}</span>`;
       }).join("");
     }
 
-    function wireCollectionPillUpdates(){
-      // Any change inside colRow updates the pills
+    function wireCollectionStatusUpdates(){
+      // Any change in collection filter updates the CURRENT TUNE pills (coloring and My Collection first-if-selected)
       document.querySelectorAll('#colRow input[type="checkbox"]').forEach(el => {
-        el.addEventListener('change', () => renderCollectionPillsStatus());
+        el.addEventListener('change', () => renderCurrentTuneCollectionPills());
       });
-      renderCollectionPillsStatus();
+      renderCurrentTuneCollectionPills();
     }
 
     // ------------------------------
@@ -652,8 +655,8 @@
     async function buildCollectionsUIFromAllTunes() {
       clearRow("colRow");
 
-      // Always include local-only virtual collection
-      addPlainCheckboxes("colRow", ["My Collection"], false);
+      // Always include local-only virtual collection (unchecked by default)
+      addPlainCheckboxes("colRow", [MY_LABEL], false);
 
       const set = new Set();
       for (const f of tuneFiles) {
@@ -663,11 +666,12 @@
           cols.forEach(c => set.add(c));
         } catch (e) {}
       }
-      const list = Array.from(set).sort((a,b) => a.localeCompare(b));
+
+      const list = Array.from(set).sort((a,b) => a.localeCompare(b, undefined, { sensitivity:"base", numeric:true }));
       if (list.length > 0) addPlainCheckboxes("colRow", list, true);
 
-      // NEW: wire status pills after UI exists
-      wireCollectionPillUpdates();
+      // Wire updates once built
+      wireCollectionStatusUpdates();
     }
 
     async function buildMetersUIFromAllTunes() {
@@ -689,7 +693,7 @@
           if (ac !== bc) return ac - bc;
           return au - bu;
         }
-        return a.localeCompare(b);
+        return a.localeCompare(b, undefined, { sensitivity:"base", numeric:true });
       });
 
       if (list.length === 0) {
@@ -946,8 +950,21 @@
         const md = await getMetadata(currentFile);
         const titleText = (md.title || "").trim();
         setStatus(currentFile, keyShown, titleText);
+
+        // Update CURRENT TUNE collections for status pills
+        const cols = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
+        currentTuneCollections = Array.from(new Set(cols.map(x => String(x || "").trim()).filter(Boolean)));
+
+        // Update "is mine"
+        currentTuneIsMine = getMyCollectionSet().has(currentFile);
+
+        renderCurrentTuneCollectionPills();
       } catch (e) {
         setStatus(currentFile, keyShown, "");
+
+        currentTuneCollections = [];
+        currentTuneIsMine = getMyCollectionSet().has(currentFile);
+        renderCurrentTuneCollectionPills();
       }
     }
 
@@ -962,10 +979,8 @@
       const titleValue = document.getElementById('titleValue');
       if (titleValue) titleValue.textContent = titleStr;
 
-      // Keep titleBar tooltip useful
-      const checked = Array.from(getCheckedCollectionSetFromUI());
       const titleBar = document.getElementById('titleBar');
-      if (titleBar) titleBar.title = `Title: ${titleStr} | Checked collections: ${checked.join(", ") || "—"}`;
+      if (titleBar) titleBar.title = `Title: ${titleStr}`;
     }
 
     // ------------------------------
@@ -978,9 +993,8 @@
       const meterSelected = getChecked('meterRow');
       const colSelected   = getChecked('colRow');
 
-      // local-only favorites set
       const mySet = getMyCollectionSet();
-      const wantsMy = colSelected.includes("My Collection");
+      const wantsMy = colSelected.includes(MY_LABEL);
 
       const candidates = [];
       for (const f of tuneFiles) {
@@ -1045,13 +1059,16 @@
       } catch (err) {
         console.error(err);
         setStatus("—", `Error: ${err.message}`, "");
+
+        currentTuneCollections = [];
+        currentTuneIsMine = false;
+        renderCurrentTuneCollectionPills();
       }
     }
 
     async function octaveUp()   { octaveShift += 1; await renderCurrent(); }
     async function octaveDown() { octaveShift -= 1; await renderCurrent(); }
 
-    // Half-step buttons: change the ACTUAL target key (so status & music always match)
     async function halfStep(delta){
       if (!currentTargetKey) return;
       const pc = PC[currentTargetKey];
@@ -1066,7 +1083,6 @@
     async function halfStepUp(){ await halfStep(+1); }
     async function halfStepDown(){ await halfStep(-1); }
 
-    // Enharmonic toggle: ALWAYS swaps C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb when applicable
     async function toggleEnharmonic(){
       if (!currentTargetKey) return;
       const pair = ENHARMONIC_MAP[currentTargetKey];
@@ -1148,8 +1164,8 @@
       await buildCollectionsUIFromAllTunes();
       await buildMetersUIFromAllTunes();
 
-      document.getElementById('keysAllBtn').addEventListener('click', () => { keyRangeSelectAll(); });
-      document.getElementById('keysNoneBtn').addEventListener('click', () => { keyRangeSelectNone(); });
+      document.getElementById('keysAllBtn').addEventListener('click', keyRangeSelectAll);
+      document.getElementById('keysNoneBtn').addEventListener('click', keyRangeSelectNone);
 
       document.getElementById('exAllBtn').addEventListener('click',   () => setAllCheckboxes('exRow', true));
       document.getElementById('exNoneBtn').addEventListener('click',  () => setAllCheckboxes('exRow', false));
@@ -1157,9 +1173,9 @@
       document.getElementById('meterAllBtn').addEventListener('click',  () => setAllCheckboxes('meterRow', true));
       document.getElementById('meterNoneBtn').addEventListener('click', () => setAllCheckboxes('meterRow', false));
 
-      // IMPORTANT: after changing collection checks via all/none, update pills
-      document.getElementById('colAllBtn').addEventListener('click',  () => { setAllCheckboxes('colRow', true); renderCollectionPillsStatus(); });
-      document.getElementById('colNoneBtn').addEventListener('click', () => { setAllCheckboxes('colRow', false); renderCollectionPillsStatus(); });
+      // Collection all/none must also update coloring of CURRENT TUNE pills
+      document.getElementById('colAllBtn').addEventListener('click',  () => { setAllCheckboxes('colRow', true); renderCurrentTuneCollectionPills(); });
+      document.getElementById('colNoneBtn').addEventListener('click', () => { setAllCheckboxes('colRow', false); renderCurrentTuneCollectionPills(); });
 
       const verovioUrl = 'https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js?v=latest';
       try { await loadScript(verovioUrl); }
@@ -1214,8 +1230,10 @@
             updateSpacingBadge();
             updateScaleBadge();
 
-            // Make sure pills render at startup even before any user click
-            renderCollectionPillsStatus();
+            // show empty status pills until first tune
+            currentTuneCollections = [];
+            currentTuneIsMine = false;
+            renderCurrentTuneCollectionPills();
 
             if (tuneFiles.length > 0) showRandomTune();
           } catch (err) {
