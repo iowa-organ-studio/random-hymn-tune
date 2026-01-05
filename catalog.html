@@ -26,8 +26,8 @@
     }
 
     .topbar{
-      display:flex; align-items:flex-start; justify-content:space-between;
-      gap:12px; flex-wrap:wrap; margin-bottom:10px;
+      display:block;
+      margin-bottom:10px;
     }
 
     .titleblock h1{
@@ -37,7 +37,10 @@
       margin:4px 0 0; color:var(--muted); font-size:.95rem;
     }
 
+    /* matches index.html link look */
     .navLink{
+      display:inline-block;
+      margin-top:6px;              /* sits under subtitle */
       font-size:1rem;
       font-weight:700;
       text-decoration:none;
@@ -113,19 +116,27 @@
       padding:10px;
       vertical-align:top;
       font-size:.95rem;
+      font-weight:400; /* ensure normal weight in table cells */
+      color:var(--text);
     }
     tbody tr:hover{ background:#fcfcff; }
 
     .col-title{
       display:flex; align-items:flex-start; gap:10px;
     }
+
+    /* IMPORTANT: clickable but NOT blue/bold like a link */
     .titleLink{
-      color:var(--btn-blue);
+      color:var(--text);
       text-decoration:none;
-      font-weight:800;
+      font-weight:600;
       line-height:1.15;
+      cursor:pointer;
     }
-    .titleLink:hover{ text-decoration:underline; }
+    .titleLink:hover{
+      text-decoration:underline;
+      color:var(--btn-blue);
+    }
 
     .fileHint{
       display:block;
@@ -216,8 +227,9 @@
     <div class="titleblock">
       <h1>Tune Catalog</h1>
       <div class="sub">Sortable list of tunes in <code>/tunes</code>. Click a title to engrave it.</div>
+      <!-- moved + left-justified under subtitle -->
+      <a class="navLink" href="index.html">Back to the Random Hymn Tune Generator</a>
     </div>
-    <a class="navLink" href="index.html">Back to the Random Hymn Tune Generator</a>
   </div>
 
   <div class="panel">
@@ -442,22 +454,16 @@ async function getMetadata(fileName){
     return out;
   }
 
-  const keys = allByTagNS(xml, "key");
-  const keyEl = keys.length ? keys[0] : null;
-
-  const keyMode  = (keyEl?.getAttribute("mode")  || "").trim();
-  const pname    = (keyEl?.getAttribute("pname") || "").trim().toLowerCase();
-  const accid    = (keyEl?.getAttribute("accid") || "").trim().toLowerCase();
-  const keyTonic = pname ? (pname.toUpperCase() + (accid === "s" ? "#" : accid === "f" ? "b" : "")) : "";
-
   const collections = collectionsFromXml(xml);
   const collection  = collections.length ? collections[0] : "";
   const meterSig    = meterSigFromXml(xml);
-
   const titleEl = firstByTagNS(xml, "title");
   const title = (titleEl?.textContent || "").trim();
+  const keys = allByTagNS(xml, "key");
+  const keyEl = keys.length ? keys[0] : null;
+  const keyMode  = (keyEl?.getAttribute("mode")  || "").trim();
 
-  const out = { keyMode, keyTonic, collection, collections, meterSig, title, __v: METADATA_CACHE_VERSION };
+  const out = { keyMode, collection, collections, meterSig, title, __v: METADATA_CACHE_VERSION };
   mdCache[fileName] = out;
   return out;
 }
@@ -474,18 +480,12 @@ function norm(s){ return String(s||"").toLowerCase().trim(); }
 
 function compare(a,b){
   const dir = (sortDir === "asc") ? 1 : -1;
-
-  const av = a[sortKey];
-  const bv = b[sortKey];
-
-  // collections: compare joined
   if (sortKey === "collections"){
     const aj = (a.collections || []).join(";");
     const bj = (b.collections || []).join(";");
     return dir * aj.localeCompare(bj, undefined, { sensitivity:"base", numeric:true });
   }
-
-  return dir * String(av||"").localeCompare(String(bv||""), undefined, { sensitivity:"base", numeric:true });
+  return dir * String(a[sortKey]||"").localeCompare(String(b[sortKey]||""), undefined, { sensitivity:"base", numeric:true });
 }
 
 function escapeHtml(s){
@@ -510,8 +510,7 @@ function matchesFilter(r){
 }
 
 function updateCountNote(countShown, total){
-  const el = document.getElementById("countNote");
-  el.textContent = `${countShown} of ${total} tunes`;
+  document.getElementById("countNote").textContent = `${countShown} of ${total} tunes`;
 }
 
 function renderTable(){
@@ -526,7 +525,7 @@ function renderTable(){
     return;
   }
 
-  const html = filtered.map(r => {
+  tbody.innerHTML = filtered.map(r => {
     const isMine = mySet.has(r.file);
 
     const collections = (r.collections && r.collections.length) ? r.collections : [];
@@ -536,7 +535,6 @@ function renderTable(){
 
     const mode = r.mode ? escapeHtml(r.mode) : "—";
     const meter = r.meter ? escapeHtml(r.meter) : "—";
-
     const fileHint = escapeHtml(r.file.split("/").pop());
 
     return `
@@ -549,7 +547,7 @@ function renderTable(){
         <td>
           <div class="col-title">
             <div>
-              <a href="#" class="titleLink" data-engrave="${escapeHtml(r.file)}">${escapeHtml(r.title || fileHint.replace(/\.mei$/i,""))}</a>
+              <a href="#" class="titleLink" data-engrave="${escapeHtml(r.file)}">${escapeHtml(r.title || fileHint.replace(/\\.mei$/i,""))}</a>
               <span class="fileHint">${fileHint}</span>
             </div>
           </div>
@@ -561,9 +559,6 @@ function renderTable(){
     `;
   }).join("");
 
-  tbody.innerHTML = html;
-
-  // wire checkbox events
   tbody.querySelectorAll('input[type="checkbox"][data-file]').forEach(cb => {
     cb.addEventListener("change", (e) => {
       const file = e.target.getAttribute("data-file");
@@ -574,24 +569,12 @@ function renderTable(){
     });
   });
 
-  // wire engrave clicks
   tbody.querySelectorAll('a.titleLink[data-engrave]').forEach(a => {
     a.addEventListener("click", async (e) => {
       e.preventDefault();
-      const file = a.getAttribute("data-engrave");
-      await engraveTune(file);
+      await engraveTune(a.getAttribute("data-engrave"));
     });
   });
-}
-
-function setSort(key){
-  if (sortKey === key){
-    sortDir = (sortDir === "asc") ? "desc" : "asc";
-  }else{
-    sortKey = key;
-    sortDir = "asc";
-  }
-  renderTable();
 }
 
 /* ===============================
@@ -609,7 +592,6 @@ function loadScript(src){
   });
 }
 
-// remove titleStmt so Verovio doesn't print title above music
 function stripMeiTitle(meiText){
   try{
     const xml = new DOMParser().parseFromString(meiText, "application/xml");
@@ -629,7 +611,6 @@ function computeResponsivePageWidth(){
   return Math.max(1200, Math.floor(w * 2.0));
 }
 
-// Nuclear whitespace trim (same idea as index)
 function trimSvgWhitespace(svgHostId = "svg", pad = 12){
   const host = document.getElementById(svgHostId);
   if (!host) return;
@@ -752,14 +733,18 @@ async function buildRows(){
   return out;
 }
 
+function setSort(key){
+  if (sortKey === key) sortDir = (sortDir === "asc") ? "desc" : "asc";
+  else { sortKey = key; sortDir = "asc"; }
+  renderTable();
+}
+
 async function init(){
-  // sort headers
   document.querySelectorAll("th.sortable[data-key]").forEach(th => {
     th.addEventListener("click", () => setSort(th.getAttribute("data-key")));
     th.title = "Click to sort";
   });
 
-  // search
   const searchBox = document.getElementById("searchBox");
   searchBox.addEventListener("input", () => {
     filterText = searchBox.value || "";
@@ -772,13 +757,11 @@ async function init(){
     searchBox.focus();
   });
 
-  // close engrave
   document.getElementById("closeEngraveBtn").addEventListener("click", () => {
     document.getElementById("engravePanel").style.display = "none";
     document.getElementById("svg").innerHTML = "";
   });
 
-  // discover tunes
   await discoverTunes();
   if (!tuneFiles.length){
     document.getElementById("tbody").innerHTML =
@@ -789,12 +772,6 @@ async function init(){
 
   rows = await buildRows();
   renderTable();
-
-  // resize engraving responsive width
-  window.addEventListener("resize", () => {
-    // If engraving is open, re-render the current SVG by re-engraving last loaded MEI
-    // (We keep it simple: do nothing; click title again if needed.)
-  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
