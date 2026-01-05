@@ -94,7 +94,7 @@
 <!-- m5 -->
 <measure n="5">
   <staff n="1"><layer n="1">
-    <note xml:id="m5_n1" pname="b" oct="3" dur="2" dots="1"/>
+    <note xml:id="m5_n1" pname="d" oct="3" dur="2" dots="1"/>
     <note xml:id="m5_n2" pname="d" oct="4" dur="4"/>
   </layer></staff>
 </measure>
@@ -222,3 +222,4 @@
   </music>
 
 </mei>
+
