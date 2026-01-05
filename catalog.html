@@ -696,7 +696,7 @@
           const md = await getMetadata(f);
           const title = normalize(md.title) || fileBaseName(f);
           const collections = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
-          const collection = normalize(collections[0] || md.collection || "");
+          const collection = normalize(collections.join("; "));
           const mode = modeLabel(md.keyMode);
           const meter = normalize(md.meterSig || "");
 
