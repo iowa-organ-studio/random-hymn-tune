@@ -126,7 +126,7 @@
                 <note xml:id="m7_n1" pname="e" oct="5" dur="4"/>
                 <note xml:id="m7_n2" pname="d" oct="5" dur="4"/>
                 <note xml:id="m7_n3" pname="c" accid="n" oct="5" dur="4"/>
-                <note xml:id="m7_n4" pname="b" oct="4" dur="4"/>
+                <note xml:id="m7_n4" pname="b" accid="n" oct="4" dur="4"/>
               </layer></staff>
             </measure>
 
@@ -191,5 +191,6 @@
   </music>
 
 </mei>
+
 
 
