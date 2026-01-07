@@ -1,0 +1,187 @@
+
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.0.0">
+  <meiHead>
+    <fileDesc>
+      <titleStmt>
+                 <!-- ***Title*** -->
+        <title>Es ist das Heil</title>
+      </titleStmt>
+    
+    </fileDesc>
+
+    <!-- Work metadata (tags) -->
+    <workDesc>
+      <work>
+                   <!-- ******Title******** -->
+        <title>Es ist das Heil</title>
+
+             <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
+        <key pname="e"  mode="major"/>
+
+                             <!-- ******Collection *********-->
+        <identifier type="collection">Senfter</identifier>
+      </work>
+    </workDesc>
+  </meiHead>
+
+ <music>
+    <body>
+      <mdiv>
+        <score>
+           <scoreDef>
+            <staffGrp>
+              <staffDef n="1" lines="5">
+                <clef shape="G" line="2"/>
+                     <!-- ******Time signature *********-->
+                <meterSig count="4" unit="4"/>
+                     <!-- ******Key signature *********-->
+                <keySig sig="4s"/>
+                          <!-- ******Key  *********-->
+               <key pname="e"  mode="major"/>
+              </staffDef>
+            </staffGrp>
+          </scoreDef>
+
+
+
+  
+
+<section>
+            <!-- pickup -->
+            <measure n="0" metcon="false">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="1">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="d" accid="n" oct="5" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="2">
+              <staff n="1"><layer n="1">
+                <note pname="c" oct="5" dur="4"/>
+                <note pname="b" oct="4" dur="4"/>
+                <note xml:id="m2a" pname="a" oct="4" dur="4"/>
+                <note pname="b" oct="4" dur="4"/>
+              </layer></staff>
+              <fermata startid="#m2a" place="above"/>
+            </measure>
+
+            <measure n="3">
+              <staff n="1"><layer n="1">
+                <note pname="g" oct="4" dur="4"/>
+                <beam>
+                  <note pname="e" oct="4" dur="8"/>
+                  <note pname="f" oct="4" dur="8"/>
+                </beam>
+                <note pname="g" oct="4" dur="4"/>
+                <note pname="a" accid="s" oct="4" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="4">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <note xml:id="m4b" pname="b" oct="4" dur="4"/>
+                <note pname="b" oct="4" dur="4"/>
+              </layer></staff>
+              <fermata startid="#m4b" place="above"/>
+            </measure>
+
+   <!-- m.5: starts on what USED to be beat 2 of old m.5 -->
+<measure n="5">
+  <staff n="1">
+    <layer n="1">
+      <note pname="e" oct="5" dur="4"/>   <!-- old m5 beat2 -->
+      <note pname="d" oct="5" dur="4"/>   <!-- old m5 beat3 -->
+      <note pname="c" oct="5" dur="4"/>   <!-- old m5 beat4 -->
+      <note pname="d" oct="5" dur="4"/>   <!-- old m6 beat1 -->
+    </layer>
+  </staff>
+</measure>
+
+<measure n="6">
+  <staff n="1">
+    <layer n="1">
+      <beam>
+        <note pname="e" oct="5" dur="8"/> <!-- old m6 beat2 (e8) -->
+        <note pname="d" oct="5" dur="8"/> <!-- old m6 beat2 (d8) -->
+      </beam>
+      <note pname="c" oct="5" dur="4"/>   <!-- old m6 beat3 -->
+      <note xml:id="m6b" pname="b" oct="4" dur="4"/> <!-- old m6 beat4 (fermata) -->
+      <note pname="b" oct="4" dur="4"/>   <!-- old m7 beat1 -->
+    </layer>
+  </staff>
+  <fermata startid="#m6b" place="above"/>
+</measure>
+
+<measure n="7">
+  <staff n="1">
+    <layer n="1">
+      <note pname="e" oct="5" dur="4"/>   <!-- old m7 beat2 -->
+      <note pname="b" oct="4" dur="4"/>   <!-- old m7 beat3 -->
+      <note pname="c" oct="5" dur="4"/>   <!-- old m7 beat4 -->
+      <beam>
+        <note pname="g" oct="4" dur="8"/> <!-- old m8 beat1 (g8) -->
+        <note pname="a" oct="4" dur="8"/> <!-- old m8 beat1 (a8) -->
+      </beam>
+    </layer>
+  </staff>
+</measure>
+
+<measure n="8">
+  <staff n="1">
+    <layer n="1">
+      <note pname="b" oct="4" dur="4"/>   <!-- old m8 beat2 -->
+      <note pname="a" oct="4" dur="4"/>   <!-- old m8 beat3 -->
+      <note xml:id="m8g" pname="g" oct="4" dur="4"/> <!-- old m8 beat4 (fermata) -->
+      <note pname="g" oct="4" dur="4"/>   <!-- old m9 beat1 -->
+    </layer>
+  </staff>
+  <fermata startid="#m8g" place="above"/>
+</measure>
+
+<measure n="9">
+  <staff n="1">
+    <layer n="1">
+      <note pname="f" oct="4" dur="4"/>   <!-- old m9 beat2 -->
+      <note pname="a" oct="4" dur="4"/>   <!-- old m9 beat3 -->
+      <note pname="g" oct="4" dur="4"/>   <!-- old m9 beat4 -->
+      <note pname="f" oct="4" dur="4"/>   <!-- old m10 beat1 -->
+    </layer>
+  </staff>
+</measure>
+
+<!-- final bar is now 3 beats so the LAST note lands on beat 3 -->
+<measure n="10" metcon="false" right="dbl">
+  <staff n="1">
+    <layer n="1">
+      <note pname="c" oct="4" dur="4"/>   <!-- old m10 beat2 -->
+      <note pname="d" oct="4" dur="4"/>   <!-- old m10 beat3 -->
+      <note xml:id="m10e" pname="e" oct="4" dur="4"/> <!-- old m10 beat4 (fermata) -->
+    </layer>
+  </staff>
+  <fermata startid="#m10e" place="above"/>
+</measure>
+
+
+
+          </section>
+
+
+
+
+
+        </score>
+      </mdiv>
+    </body>
+  </music>
+
+</mei>
