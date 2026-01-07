@@ -1,0 +1,206 @@
+
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.0.0">
+  <meiHead>
+    <fileDesc>
+      <titleStmt>
+                 <!-- ***Title*** -->
+        <title>Nun Ruhen Alle Waelder</title>
+      </titleStmt>
+    
+    </fileDesc>
+
+    <!-- Work metadata (tags) -->
+    <workDesc>
+      <work>
+                   <!-- ******Title******** -->
+        <title>Nun Ruhen Alle Waelder</title>
+
+             <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
+        <key pname="b" accid="f" mode="major"/>
+
+                             <!-- ******Collection *********-->
+        <identifier type="collection">Senfter</identifier>
+      </work>
+    </workDesc>
+  </meiHead>
+
+ <music>
+    <body>
+      <mdiv>
+        <score>
+           <scoreDef>
+            <staffGrp>
+              <staffDef n="1" lines="5">
+                <clef shape="G" line="2"/>
+                     <!-- ******Time signature *********-->
+                <meterSig count="4" unit="4"/>
+                     <!-- ******Key signature *********-->
+                <keySig sig="2f"/>
+                          <!-- ******Key  *********-->
+               <key pname="b" accid="f" mode="major"/>
+              </staffDef>
+            </staffGrp>
+          </scoreDef>
+
+
+
+  
+
+
+   <section>
+            <!-- Pickup -->
+            <measure n="0" metcon="false">
+              <staff n="1"><layer n="1">
+                <note pname="d" oct="5" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="1">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <beam>
+                  <note pname="d" oct="5" dur="8"/>
+                  <note pname="e" oct="5" dur="8"/>
+                </beam>
+                <note pname="f" oct="5" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="2">
+              <staff n="1"><layer n="1">
+                <note pname="e" oct="5" dur="2"/>
+                <note xml:id="m2d" pname="d" oct="5" dur="4"/>
+                <beam>
+                  <note pname="d" oct="5" dur="8"/>
+                  <note pname="e" oct="5" dur="8"/>
+                </beam>
+              </layer></staff>
+              <fermata startid="#m2d" place="above"/>
+            </measure>
+
+            <measure n="3">
+              <staff n="1"><layer n="1">
+                <note pname="f" oct="5" dur="4"/>
+                <note pname="f" oct="5" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <beam>
+                  <note pname="d" oct="5" dur="8"/>
+                  <note pname="c" oct="5" dur="8"/>
+                </beam>
+              </layer></staff>
+            </measure>
+
+            <measure n="4">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="2"/>
+                <note xml:id="m4a" pname="a" oct="4" dur="4"/>
+                <note pname="f" oct="4" dur="4"/>
+              </layer></staff>
+              <fermata startid="#m4a" place="above"/>
+            </measure>
+
+            <measure n="5">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <beam>
+                  <note pname="d" oct="5" dur="8"/>
+                  <note pname="e" oct="5" dur="16"/>
+                  <note pname="f" oct="5" dur="16"/>
+                </beam>
+                <beam>
+                  <note pname="e" oct="5" dur="8"/>
+                  <note pname="d" oct="5" dur="8"/>
+                </beam>
+              </layer></staff>
+            </measure>
+
+            <measure n="6">
+              <staff n="1"><layer n="1">
+                <note xml:id="m6c" pname="c" oct="5" dur="2" dots="1"/>
+                <note pname="d" oct="5" dur="4"/>
+              </layer></staff>
+              <fermata startid="#m6c" place="above"/>
+            </measure>
+
+            <measure n="7">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <beam>
+                  <note pname="d" oct="5" dur="8"/>
+                  <note pname="e" oct="5" dur="8"/>
+                </beam>
+                <note pname="f" oct="5" dur="4"/>
+              </layer></staff>
+            </measure>
+
+            <measure n="8">
+              <staff n="1"><layer n="1">
+                <note pname="e" oct="5" dur="2"/>
+                <note xml:id="m8d" pname="d" oct="5" dur="4"/>
+                <beam>
+                  <note pname="d" oct="5" dur="8"/>
+                  <note pname="e" oct="5" dur="8"/>
+                </beam>
+              </layer></staff>
+              <fermata startid="#m8d" place="above"/>
+            </measure>
+
+            <measure n="9">
+              <staff n="1"><layer n="1">
+                <note pname="f" oct="5" dur="4"/>
+                <note pname="f" oct="5" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <beam>
+                  <note pname="d" oct="5" dur="8"/>
+                  <note pname="c" oct="5" dur="8"/>
+                </beam>
+              </layer></staff>
+            </measure>
+
+            <measure n="10">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="2"/>
+                <note xml:id="m10a" pname="a" oct="4" dur="4"/>
+                <note pname="f" oct="4" dur="4"/>
+              </layer></staff>
+              <fermata startid="#m10a" place="above"/>
+            </measure>
+
+            <measure n="11">
+              <staff n="1"><layer n="1">
+                <note pname="b" oct="4" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <note pname="d" oct="5" dur="4"/>
+                <beam>
+                  <note pname="c" oct="5" dur="8"/>
+                  <note pname="d" oct="5" dur="16"/>
+                  <note pname="e" oct="5" dur="16"/>
+                </beam>
+              </layer></staff>
+            </measure>
+
+            <!-- Final shortened measure to balance pickup -->
+            <measure n="12" metcon="false" right="dbl">
+              <staff n="1"><layer n="1">
+                <note pname="d" oct="5" dur="4"/>
+                <note pname="c" oct="5" dur="4"/>
+                <note xml:id="m12b" pname="b" oct="4" dur="4"/>
+              </layer></staff>
+              <fermata startid="#m12b" place="above"/>
+            </measure>
+
+          </section>
+
+
+
+
+
+        </score>
+      </mdiv>
+    </body>
+  </music>
+
+</mei>
