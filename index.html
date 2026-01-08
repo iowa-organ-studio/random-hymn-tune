@@ -15,7 +15,7 @@
       --btn-red:#d32f2f;--btn-red-hover:#b71c1c;
       --btn-pink:#ff6fb3;--btn-pink-hover:#ff4fa3;
 
-      /* NEW: green tuned to sit well with the gold palette */
+      /* green tuned to sit well with the gold palette */
       --btn-green:#2f7d55;
       --btn-green-hover:#256646;
     }
@@ -36,7 +36,6 @@
     .btn-spacing{background:var(--btn-blue)} .btn-spacing:hover{background:var(--btn-blue-hover)}
     .btn-music{background:var(--btn-lightblue);color:#042a46} .btn-music:hover{background:var(--btn-lightblue-hover)}
 
-    /* NEW: green enharmonic button */
     .btn-enharm{background:var(--btn-green);color:#fff}
     .btn-enharm:hover{background:var(--btn-green-hover)}
 
@@ -93,45 +92,26 @@
     #titleBar .title-item span.value{font-weight:600}
     #titleBar .divider{opacity:.35}
 
-    /* ---- Pills for CURRENT TUNE collections ---- */
-    .colPills{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      flex-wrap:wrap;
-    }
+    .colPills{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
     .pill{
-      display:inline-block;
-      padding:2px 8px;
-      border-radius:999px;
-      border:1px solid #ddd;
-      background:#fff;
-      color:#333;
-      font-weight:600;
-      font-size:.88rem;
-      line-height:1.2;
-      white-space:nowrap;
+      display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #ddd;
+      background:#fff;color:#333;font-weight:600;font-size:.88rem;line-height:1.2;white-space:nowrap
     }
-    .pill.active{
-      background:var(--gold-lite);
-      border-color:var(--gold-lite-border);
-      color:#3b2f00;
-    }
+    .pill.active{background:var(--gold-lite);border-color:var(--gold-lite-border);color:#3b2f00}
 
+    /* No horizontal scrollbar */
     #viewer{
       background:#fff;border:1px solid #ddd;border-radius:10px;padding:4px;min-height:200px;
-      overflow-x:auto;overscroll-behavior-x:contain;margin-bottom:8px
+      overflow-x:hidden; overflow-y:auto; overscroll-behavior-x:contain; margin-bottom:8px
     }
-    #svg{width:100%;height:auto}
-    #svg svg{display:block}
+
+    /* IMPORTANT: do NOT force the inner SVG to width:100% (that cancels Music+) */
+    #svg{width:100%;}
+    #svg svg{display:block; height:auto; max-width:100%;}
 
     footer{margin-top:8px;color:#777;font-size:.85rem}
-    /* NEW: larger Tune Catalog link */
     #catalogLink{
-      font-size:1rem;
-      font-weight:700;
-      text-decoration:none;
-      color:var(--btn-blue);
+      font-size:1rem;font-weight:700;text-decoration:none;color:var(--btn-blue);
     }
     #catalogLink:hover{ text-decoration:underline; }
   </style>
@@ -146,7 +126,6 @@
     <button id="octUpBtn"   class="btn-oct" type="button" disabled title="Transpose up 8va">8va↑</button>
     <button id="octDownBtn" class="btn-oct" type="button" disabled title="Transpose down 8va">8va↓</button>
 
-    <!-- NEW: class is btn-enharm -->
     <button id="enharmonicBtn" class="btn-enharm" type="button" disabled title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
 
     <button id="halfUpBtn" class="btn-music" type="button" disabled title="Transpose up a semitone">Half step ↑</button>
@@ -159,7 +138,7 @@
     </div>
 
     <div class="control-group" id="groupScale">
-      <button id="musicPlusBtn"  class="btn-music" type="button" disabled title="Increase music size">Music+</button>
+      <button id="musicPlusBtn"  class="btn-music" type="button" disabled title="Increase music size (auto-capped)">Music+</button>
       <button id="musicMinusBtn" class="btn-music" type="button" disabled title="Decrease music size">Music−</button>
       <span id="scaleBadge" class="status-badge" title="Current engraving scale">Scale: —</span>
     </div>
@@ -231,7 +210,6 @@
 
   <footer>
     <p style="margin:0">
-      <!-- NEW: larger + new wording -->
       <a id="catalogLink" href="catalog.html">Tune Catalog — create custom “My Collection”</a>
     </p>
     <p style="margin-top:4px">created for the University of Iowa Organ Studio</p>
@@ -258,10 +236,7 @@
     // Config & state
     // ------------------------------
     let tuneFiles = [];
-
-    // DEFAULT: 0#/0♭ selected
     const accidentalsSelected = new Set([0]);
-
     const labelFor = k => k.replace(/#/g,"♯").replace(/b/g,"♭");
 
     const majorMinorVals   = ["Major", "Minor"];
@@ -270,14 +245,11 @@
     let vrvToolkit = null;
     let currentFile = null;
 
-    // IMPORTANT: this is the current *target key tonic label* (what status shows; what transpose uses)
     let currentTargetKey = "";
     let currentMode = ""; // "major" | "minor"
     let originalTonic = "";
-
     let octaveShift = 0;
 
-    // Required enharmonic toggle pairs
     const ENHARMONIC_MAP = {
       "C#":"Db", "Db":"C#",
       "D#":"Eb", "Eb":"D#",
@@ -292,15 +264,13 @@
     const MEI_NS = "http://www.music-encoding.org/ns/mei";
     const METADATA_CACHE_VERSION = 6;
 
-    // Track current tune's collections (for status pills)
-    let currentTuneCollections = []; // strings like ["1","3","4"] (from MEI)
-    let currentTuneIsMine = false;   // true if in local My Collection set
+    let currentTuneCollections = [];
+    let currentTuneIsMine = false;
 
     // --- ENGRAVING OPTIONS ---
     const baseOptions = {
       scale: 44,
 
-      // Page geometry
       pageWidth: 2200,
       pageHeight: 2000,
       adjustPageHeight: true,
@@ -309,11 +279,9 @@
       pageMarginTop: 24,
       pageMarginBottom: 24,
 
-      // Vertical spacing
       spacingSystem: 10,
       spacingStaff: 8,
 
-      // Horizontal spacing
       spacingLinear: 0.22,
       spacingNonLinear: 0.46,
       minMeasureWidth: 44,
@@ -325,7 +293,7 @@
     };
 
     // ------------------------------
-    // Bounds & steps
+    // Bounds & steps + HARD CAP
     // ------------------------------
     const SCALE_MIN = 30;
     const SCALE_MAX = 200;
@@ -334,6 +302,10 @@
     const SPACING_MIN = 0.08;
     const SPACING_MAX = 0.80;
     const SPACING_STEP = 0.01;
+
+    // HARD CAP: max number of wrapped systems allowed on the page
+    // (one melody line => "system" count behaves like your "wrap to another stave")
+    const MAX_SYSTEMS = 3;
 
     function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
 
@@ -344,6 +316,9 @@
         t = setTimeout(() => fn(...args), delay);
       };
     }
+
+    // Prevent overlapping renders from rapid clicking
+    let renderBusy = false;
 
     // ------------------------------
     // Namespace-safe helpers
@@ -392,7 +367,7 @@
     }
 
     // ------------------------------
-    // Collection pills status (CURRENT TUNE, colored if selected)
+    // Collection pills status (CURRENT TUNE)
     // ------------------------------
     function getCheckedCollectionSetFromUI(){
       return new Set(
@@ -418,17 +393,10 @@
 
       const checked = getCheckedCollectionSetFromUI();
 
-      // Build the tune's collection list:
-      // - include its MEI collections
-      // - include "My Collection" only if this tune is in the local set
       const set = new Set((currentTuneCollections || []).map(x => String(x || "").trim()).filter(Boolean));
       if (currentTuneIsMine) set.add(MY_LABEL);
 
       let list = Array.from(set);
-
-      // Order rules:
-      // - if My Collection is selected AND tune is mine -> show first
-      // - then alphabetical for the rest
       const alpha = (a,b) => a.localeCompare(b, undefined, { sensitivity:"base", numeric:true });
       list.sort(alpha);
 
@@ -448,7 +416,6 @@
     }
 
     function wireCollectionStatusUpdates(){
-      // Any change in collection filter updates the CURRENT TUNE pills (coloring and My Collection first-if-selected)
       document.querySelectorAll('#colRow input[type="checkbox"]').forEach(el => {
         el.addEventListener('change', () => renderCurrentTuneCollectionPills());
       });
@@ -520,16 +487,56 @@
       }
     }
 
+    function setMusicPlusEnabled(enabled, reason="") {
+      const btn = document.getElementById('musicPlusBtn');
+      if (!btn) return;
+      btn.disabled = !enabled;
+      btn.title = enabled
+        ? "Increase music size (auto-capped)"
+        : (reason || `Max size reached (cap: ${MAX_SYSTEMS} systems)`);
+    }
+
     // ------------------------------
     // Controls
     // ------------------------------
-    function musicSizeChange(delta) {
-      const next = clamp(baseOptions.scale + delta, SCALE_MIN, SCALE_MAX);
-      if (next !== baseOptions.scale) {
-        baseOptions.scale = next;
-        renderCurrent();
+    async function musicSizeChange(delta) {
+      if (!currentFile || !vrvToolkit) return;
+      if (renderBusy) return;
+      renderBusy = true;
+
+      try {
+        const proposed = clamp(baseOptions.scale + delta, SCALE_MIN, SCALE_MAX);
+
+        // If no change, just refresh enablement
+        if (proposed === baseOptions.scale) {
+          const info = await renderAtScale(baseOptions.scale, true);
+          updateMusicCapButtons(info.systems);
+          return;
+        }
+
+        // Preview: if it would exceed MAX_SYSTEMS, reject and hard-cap
+        const preview = await renderAtScale(proposed, false);
+        if (preview.systems > MAX_SYSTEMS) {
+          // Hard cap reached: keep current scale, disable Music+
+          setMusicPlusEnabled(false, `Max size reached (would exceed ${MAX_SYSTEMS} systems)`);
+          return;
+        }
+
+        // Accept
+        baseOptions.scale = proposed;
+        const info = await renderAtScale(baseOptions.scale, true);
+        updateMusicCapButtons(info.systems);
+
+      } finally {
+        renderBusy = false;
       }
-      updateScaleBadge();
+    }
+
+    function updateMusicCapButtons(systemCount) {
+      // If we're already at the cap, disable plus. Otherwise enable (unless at SCALE_MAX).
+      const canGrow = (systemCount < MAX_SYSTEMS) && (baseOptions.scale < SCALE_MAX);
+      setMusicPlusEnabled(canGrow, `Max size reached (cap: ${MAX_SYSTEMS} systems)`);
+      // Music- should always be available once toolkit is ready; we leave it enabled after init.
     }
 
     function spacingChange(delta) {
@@ -673,8 +680,6 @@
 
     async function buildCollectionsUIFromAllTunes() {
       clearRow("colRow");
-
-      // Always include local-only virtual collection (unchecked by default)
       addPlainCheckboxes("colRow", [MY_LABEL], false);
 
       const set = new Set();
@@ -689,7 +694,6 @@
       const list = Array.from(set).sort((a,b) => a.localeCompare(b, undefined, { sensitivity:"base", numeric:true }));
       if (list.length > 0) addPlainCheckboxes("colRow", list, true);
 
-      // Wire updates once built
       wireCollectionStatusUpdates();
     }
 
@@ -742,7 +746,7 @@
     }
 
     // ------------------------------
-    // NEW: SVG trim (nuclear whitespace removal)
+    // SVG trim (whitespace removal)
     // ------------------------------
     function trimSvgWhitespace(svgHostId = "svg", pad = 12) {
       const host = document.getElementById(svgHostId);
@@ -751,7 +755,6 @@
       const svg = host.querySelector("svg");
       if (!svg) return;
 
-      // Ensure there is a viewBox to adjust
       if (!svg.getAttribute("viewBox")) {
         const w = parseFloat(svg.getAttribute("width") || "0") || 0;
         const h = parseFloat(svg.getAttribute("height") || "0") || 0;
@@ -759,17 +762,34 @@
       }
 
       try {
-        const box = svg.getBBox(); // tight bounds of drawn content
+        const box = svg.getBBox();
         const x = Math.max(0, box.x - pad);
         const y = Math.max(0, box.y - pad);
         const w = box.width + pad * 2;
         const h = box.height + pad * 2;
 
         svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
-        svg.removeAttribute("height"); // let CSS size it
+        svg.removeAttribute("height");
         svg.style.height = "auto";
-      } catch (e) {
-        // getBBox can fail rarely; ignore
+      } catch (e) {}
+    }
+
+    // ------------------------------
+    // Count systems in a rendered Verovio SVG
+    // ------------------------------
+    function countSystemsFromSvgText(svgText) {
+      try {
+        const doc = new DOMParser().parseFromString(svgText, "image/svg+xml");
+        const byClass = doc.querySelectorAll(".system");
+        if (byClass && byClass.length) return byClass.length;
+
+        // Fallback: some versions use ids like system-*
+        const byId = doc.querySelectorAll('[id^="system"], [id^="system-"], g[id*="system"]');
+        if (byId && byId.length) return byId.length;
+
+        return 1;
+      } catch {
+        return 1;
       }
     }
 
@@ -839,7 +859,6 @@
       return KEY_DB[m].filter(k => selectedSet.has(k.n)).map(k => k.tonic);
     }
 
-    // Pitch class map for half-step buttons
     const PC = {
       "C":0,"C#":1,"Db":1,"D":2,"D#":3,"Eb":3,"E":4,"F":5,"F#":6,"Gb":6,
       "G":7,"G#":8,"Ab":8,"A":9,"A#":10,"Bb":10,"B":11,"Cb":11
@@ -913,8 +932,6 @@
       if (!currentTargetKey) return "";
 
       const mode = (currentMode === "minor") ? "minor" : "major";
-
-      // For Verovio transpose, use major tonic; if minor, use relative major of the *current target*.
       const tonicForVerovio = (mode === "minor")
         ? relativeMajorForMinorTonic(currentTargetKey)
         : currentTargetKey;
@@ -960,26 +977,27 @@
     // ------------------------------
     function computeResponsivePageWidth() {
       const viewer = document.getElementById('viewer');
-      const w = viewer.clientWidth;
-      return Math.max(1400, Math.floor(w * 2.25));
+      const w = Math.max(320, viewer?.clientWidth || 0);
+      const innerPad = 16;
+      return Math.max(600, Math.floor(w - innerPad));
     }
 
     // ------------------------------
-    // Rendering
+    // Rendering: render at a given scale (commit or preview)
     // ------------------------------
-    async function renderCurrent() {
-      if (!currentFile || !vrvToolkit) return;
+    async function renderAtScale(scaleValue, commitToDom) {
+      if (!currentFile || !vrvToolkit) return { systems: 0, svg: "" };
 
       let meiData = await fetchMei(currentFile);
       meiData = stripMeiTitle(meiData);
 
-      // Keep the file's original key signature consistent with its tonic/mode (for natural handling)
       if (originalTonic) {
         meiData = applyStartingKeyToMei(meiData, originalTonic, currentMode);
       }
 
       const options = {
         ...baseOptions,
+        scale: scaleValue,
         pageWidth: computeResponsivePageWidth(),
         transpose: computeTransposeOption()
       };
@@ -987,12 +1005,17 @@
       vrvToolkit.setOptions(options);
       vrvToolkit.loadData(meiData);
 
-      const svg = vrvToolkit.renderToSVG(1, {});
-      document.getElementById('svg').innerHTML = svg;
+      const svgText = vrvToolkit.renderToSVG(1, {});
+      const systems = countSystemsFromSvgText(svgText);
 
-      /* NEW: trim excess whitespace produced by Verovio */
+      if (!commitToDom) {
+        return { systems, svg: svgText };
+      }
+
+      document.getElementById('svg').innerHTML = svgText;
       trimSvgWhitespace("svg", 12);
 
+      // update badges
       updateScaleBadge();
       updateSpacingBadge();
 
@@ -1005,20 +1028,30 @@
         const titleText = (md.title || "").trim();
         setStatus(currentFile, keyShown, titleText);
 
-        // Update CURRENT TUNE collections for status pills
         const cols = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
         currentTuneCollections = Array.from(new Set(cols.map(x => String(x || "").trim()).filter(Boolean)));
 
-        // Update "is mine"
         currentTuneIsMine = getMyCollectionSet().has(currentFile);
-
         renderCurrentTuneCollectionPills();
       } catch (e) {
         setStatus(currentFile, keyShown, "");
-
         currentTuneCollections = [];
         currentTuneIsMine = getMyCollectionSet().has(currentFile);
         renderCurrentTuneCollectionPills();
+      }
+
+      return { systems, svg: svgText };
+    }
+
+    async function renderCurrent() {
+      if (!currentFile || !vrvToolkit) return;
+      if (renderBusy) return;
+      renderBusy = true;
+      try{
+        const info = await renderAtScale(baseOptions.scale, true);
+        updateMusicCapButtons(info.systems);
+      } finally {
+        renderBusy = false;
       }
     }
 
@@ -1083,6 +1116,8 @@
     }
 
     async function showRandomTune() {
+      if (renderBusy) return;
+      renderBusy = true;
       try {
         currentFile = await pickRandomFilteredTune();
 
@@ -1097,10 +1132,7 @@
           originalTonic = inferTonicFromKeySig(currentMode, t, n);
         }
 
-        // Candidate target keys from KEY RANGE
         let allowedTonics = tonicsByAccidentalsSelected(currentMode, accidentalsSelected);
-
-        // Apply Exclude
         const excluded = new Set(getChecked('exRow'));
         allowedTonics = allowedTonics.filter(T => !excluded.has(T));
 
@@ -1109,14 +1141,19 @@
           : "";
 
         octaveShift = 0;
-        await renderCurrent();
+
+        // render and then set cap buttons
+        const info = await renderAtScale(baseOptions.scale, true);
+        updateMusicCapButtons(info.systems);
+
       } catch (err) {
         console.error(err);
         setStatus("—", `Error: ${err.message}`, "");
-
         currentTuneCollections = [];
         currentTuneIsMine = false;
         renderCurrentTuneCollectionPills();
+      } finally {
+        renderBusy = false;
       }
     }
 
@@ -1150,7 +1187,6 @@
     // Discover tunes
     // ------------------------------
     async function discoverTunes() {
-      // Try manifest first
       try {
         const res = await fetch(`tunes.json?_=${Date.now()}`, { cache: 'no-cache' });
         if (res.ok) {
@@ -1168,7 +1204,6 @@
         }
       } catch (e) { console.warn('Manifest fetch/parsing failed:', e); }
 
-      // Fallback: directory listing
       try {
         const res = await fetch(`tunes/?_=${Date.now()}`, { cache: 'no-cache' });
         if (res.ok) {
@@ -1227,7 +1262,6 @@
       document.getElementById('meterAllBtn').addEventListener('click',  () => setAllCheckboxes('meterRow', true));
       document.getElementById('meterNoneBtn').addEventListener('click', () => setAllCheckboxes('meterRow', false));
 
-      // Collection all/none must also update coloring of CURRENT TUNE pills
       document.getElementById('colAllBtn').addEventListener('click',  () => { setAllCheckboxes('colRow', true); renderCurrentTuneCollectionPills(); });
       document.getElementById('colNoneBtn').addEventListener('click', () => { setAllCheckboxes('colRow', false); renderCurrentTuneCollectionPills(); });
 
@@ -1274,6 +1308,7 @@
             document.getElementById('spacingPlusBtn').addEventListener('click', () => spacingChange(+SPACING_STEP));
             document.getElementById('spacingMinusBtn').addEventListener('click', () => spacingChange(-SPACING_STEP));
 
+            // ASYNC scale changes with hard cap
             document.getElementById('musicPlusBtn').addEventListener('click', () => musicSizeChange(+SCALE_STEP));
             document.getElementById('musicMinusBtn').addEventListener('click', () => musicSizeChange(-SCALE_STEP));
 
@@ -1284,10 +1319,12 @@
             updateSpacingBadge();
             updateScaleBadge();
 
-            // show empty status pills until first tune
             currentTuneCollections = [];
             currentTuneIsMine = false;
             renderCurrentTuneCollectionPills();
+
+            // Start with Music+ enabled; cap will adjust after first render
+            setMusicPlusEnabled(true);
 
             if (tuneFiles.length > 0) showRandomTune();
           } catch (err) {
@@ -1306,4 +1343,3 @@
   </script>
 </body>
 </html>
-
