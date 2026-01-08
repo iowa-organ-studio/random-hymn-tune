@@ -975,12 +975,23 @@
     // ------------------------------
     // Responsive page width
     // ------------------------------
-    function computeResponsivePageWidth() {
-      const viewer = document.getElementById('viewer');
-      const w = Math.max(320, viewer?.clientWidth || 0);
-      const innerPad = 16;
-      return Math.max(600, Math.floor(w - innerPad));
-    }
+  // Wider virtual page => fewer premature wraps at the default.
+// Tune WRAP_BIAS if you want: 1.15 (more wrapping) ... 1.55 (less wrapping).
+const WRAP_BIAS = 1.35;
+
+function computeResponsivePageWidth() {
+  const viewer = document.getElementById('viewer');
+  const w = Math.max(320, viewer?.clientWidth || 0);
+
+  // viewer has padding/border; subtract a little so we don't flirt with overflow
+  const innerPad = 24;
+  const effective = Math.max(260, w - innerPad);
+
+  // Verovio's "pageWidth" is in its own units, but empirically:
+  // a modest bias above the viewer width prevents early line breaks.
+  return Math.max(700, Math.floor(effective * WRAP_BIAS));
+}
+
 
     // ------------------------------
     // Rendering: render at a given scale (commit or preview)
@@ -1343,3 +1354,4 @@
   </script>
 </body>
 </html>
+
