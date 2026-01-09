@@ -109,16 +109,15 @@
       color:#3b2f00;
     }
 
-    /* ✅ no horizontal scrollbar; keep content pinned to top */
+    /* no horizontal scrollbar; keep content pinned to top */
     #viewer{
       background:#fff;border:1px solid #ddd;border-radius:10px;
-      padding:10px 8px 8px;
+      padding:12px 18px 10px; /* extra left/right gutter so measure numbers & final barlines never clip */
       min-height:200px;
 
       overflow-x:hidden;
       overflow-y:auto;
 
-      /* pin content to top */
       display:block;
       position:relative;
 
@@ -126,16 +125,11 @@
       margin-bottom:8px;
     }
 
-    #svg{
-      width:100%;
-      height:auto;
-
-      /* keep the SVG block at the top */
-      display:block;
-    }
+    /* keep SVG at intrinsic size; Verovio pageWidth does the fitting */
+    #svg{display:block}
     #svg svg{
-      display:block;           /* removes baseline gaps */
-      width:100%;
+      display:block;
+      width:auto;
       height:auto;
       margin:0;
     }
@@ -296,16 +290,20 @@
     let currentTuneCollections = [];
     let currentTuneIsMine = false;
 
+    let lastRenderReason = "init"; // "init" | "scale" | "spacing" | "resize" | "other"
+    let lastGoodPageWidth = null;
+
     const baseOptions = {
       scale: 44,
 
-      pageWidth: 2200,
+      pageWidth: 900,
       pageHeight: 2000,
       adjustPageHeight: true,
-      pageMarginLeft: 20,
-      pageMarginRight: 20,
-      pageMarginTop: 24,
-      pageMarginBottom: 24,
+
+      pageMarginLeft: 12,
+      pageMarginRight: 12,
+      pageMarginTop: 18,
+      pageMarginBottom: 18,
 
       spacingSystem: 10,
       spacingStaff: 8,
@@ -328,12 +326,6 @@
     const SPACING_MIN = 0.08;
     const SPACING_MAX = 0.80;
     const SPACING_STEP = 0.01;
-
-    // ---- WRAP behavior ----
-    const BASE_SCALE = 44;
-    const PAGEWIDTH_MULT = 2.25;
-    const WRAP_EDGE_DEFAULT = 0.99;  // close to right edge at Scale 44
-    const WRAP_EDGE_MIN     = 0.78;  // at huge scales wrap earlier
 
     function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
 
@@ -497,6 +489,7 @@
       const next = clamp(baseOptions.scale + delta, SCALE_MIN, SCALE_MAX);
       if (next !== baseOptions.scale) {
         baseOptions.scale = next;
+        lastRenderReason = "scale";
         renderCurrent();
       }
       updateScaleBadge();
@@ -508,6 +501,7 @@
       if (nextLinear !== baseOptions.spacingLinear || nextNonLinear !== baseOptions.spacingNonLinear) {
         baseOptions.spacingLinear = nextLinear;
         baseOptions.spacingNonLinear = nextNonLinear;
+        lastRenderReason = "spacing";
         renderCurrent();
       }
       updateSpacingBadge();
@@ -694,38 +688,10 @@
         }
         return new XMLSerializer().serializeToString(xml);
       } catch (e) {
-        console.warn("Failed to strip MEI title:", e);
         return meiText;
       }
     }
 
-    function trimSvgWhitespace(svgHostId = "svg", pad = 12) {
-      const host = document.getElementById(svgHostId);
-      if (!host) return;
-
-      const svg = host.querySelector("svg");
-      if (!svg) return;
-
-      if (!svg.getAttribute("viewBox")) {
-        const w = parseFloat(svg.getAttribute("width") || "0") || 0;
-        const h = parseFloat(svg.getAttribute("height") || "0") || 0;
-        if (w > 0 && h > 0) svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-      }
-
-      try {
-        const box = svg.getBBox();
-        const x = Math.max(0, box.x - pad);
-        const y = Math.max(0, box.y - pad);
-        const w = box.width + pad * 2;
-        const h = box.height + pad * 2;
-
-        svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
-        svg.removeAttribute("height");
-        svg.style.height = "auto";
-      } catch (e) {}
-    }
-
-    // --------- Key DB ----------
     const KEY_DB = {
       major: [
         { tonic:"C",  n:0, t:"none" },
@@ -791,11 +757,10 @@
       "C":0,"C#":1,"Db":1,"D":2,"D#":3,"Eb":3,"E":4,"F":5,"F#":6,"Gb":6,
       "G":7,"G#":8,"Ab":8,"A":9,"A#":10,"Bb":10,"B":11,"Cb":11
     };
-    function mod12(x){ return ((x%12)+12)%12; }
 
     function candidatesForPC(pc, mode){
       const m = (mode === "minor") ? "minor" : "major";
-      const want = mod12(pc);
+      const want = ((pc%12)+12)%12;
       return KEY_DB[m].filter(k => PC[k.tonic] === want).map(k => k.tonic);
     }
 
@@ -873,7 +838,6 @@
 
       let sig = "";
       if (first) sig = first.getAttribute("keysig") || first.getAttribute("key.sig") || "";
-
       sig = (sig || "").trim();
       if (!sig || sig === "0") return { t: "none", n: 0 };
 
@@ -889,45 +853,25 @@
       return found ? found.tonic : ((m === "minor") ? "A" : "C");
     }
 
-    // ------------------------------
-    // Compute "target" pageWidth (soft wrap edge)
-    // ------------------------------
-    function computeTargetPageWidth() {
+    function viewerAvailableWidth(){
       const viewer = document.getElementById('viewer');
-      const vw = Math.max(360, viewer?.clientWidth || 0);
-
-      const s = baseOptions.scale;
-      const t = clamp((s - BASE_SCALE) / (SCALE_MAX - BASE_SCALE), 0, 1);
-      const edge = WRAP_EDGE_DEFAULT - t * (WRAP_EDGE_DEFAULT - WRAP_EDGE_MIN);
-
-      const innerPad = 26;
-      const effective = Math.max(320, vw - innerPad);
-
-      return Math.max(1400, Math.floor(effective * PAGEWIDTH_MULT * edge));
+      if (!viewer) return 800;
+      const rect = viewer.getBoundingClientRect();
+      const w = Math.floor(rect.width || viewer.clientWidth || 0);
+      return Math.max(340, w);
     }
 
-    // ------------------------------
-    // NEW: if SVG still overflows, tighten pageWidth and re-render (wrap instead of running off screen)
-    // ------------------------------
-    function svgOverflowsViewer(){
-      const viewer = document.getElementById('viewer');
+    function svgIntrinsicWidthPx(){
       const svg = document.querySelector('#svg svg');
-      if (!viewer || !svg) return false;
-
-      // Compare actual rendered bbox width to available content width
-      const avail = Math.max(100, viewer.clientWidth - 16);
+      if (!svg) return 0;
+      const wAttr = svg.getAttribute('width') || "";
+      const w = parseFloat(wAttr);
+      if (Number.isFinite(w) && w > 0) return w;
       try{
         const box = svg.getBBox();
-        return box.width > avail * 1.02; // tolerate tiny rounding
+        return box.width || 0;
       }catch{
-        // fallback: use viewBox width if bbox fails
-        const vb = (svg.getAttribute('viewBox') || '').trim();
-        const m = vb.match(/^\s*([0-9.+-]+)\s+([0-9.+-]+)\s+([0-9.+-]+)\s+([0-9.+-]+)\s*$/);
-        if (m){
-          const vbw = parseFloat(m[3]) || 0;
-          return vbw > avail * 1.02;
-        }
-        return false;
+        return 0;
       }
     }
 
@@ -941,12 +885,73 @@
       vrvToolkit.loadData(meiData);
       const svgStr = vrvToolkit.renderToSVG(1, {});
       document.getElementById('svg').innerHTML = svgStr;
-      trimSvgWhitespace("svg", 12);
     }
 
-    // ------------------------------
-    // Rendering
-    // ------------------------------
+    // ✅ NEW FITTING: if it’s wrapping too early, *increase* pageWidth until we nearly fill the viewer.
+    async function fitPageWidthToViewer(meiData){
+      const avail = viewerAvailableWidth();
+
+      // “never clip” safety buffer at the right edge
+      const hardMax = Math.floor(avail - 6);
+
+      // We consider “good fill” if the rendered SVG uses at least this fraction of the viewer width.
+      // This prevents huge whitespace on long tunes.
+      const FILL_TARGET = 0.92;
+
+      // Start point:
+      // - For a fresh tune / spacing changes, start at viewer width.
+      // - Otherwise, reuse last good.
+      let pw = (lastGoodPageWidth && Math.abs(lastGoodPageWidth - avail) < 260 && lastRenderReason !== "spacing")
+        ? lastGoodPageWidth
+        : avail;
+
+      // 1) Render once.
+      await renderWithPageWidth(pw, meiData);
+
+      // 2) Measure and adjust.
+      let w = svgIntrinsicWidthPx();
+      let tries = 0;
+
+      // If we overflow, shrink like before (rare).
+      while (w > hardMax && tries < 8){
+        pw = Math.max(320, Math.floor(pw * 0.94));
+        await renderWithPageWidth(pw, meiData);
+        w = svgIntrinsicWidthPx();
+        tries++;
+      }
+
+      // If we have huge whitespace (wrap-too-soon), increase pageWidth until we fill most of the viewer.
+      // Key insight: larger Verovio pageWidth reduces the urge to wrap early.
+      tries = 0;
+      while (w > 0 && w < hardMax * FILL_TARGET && tries < 10){
+        // increase gently to avoid big jumps when spacing changes
+        const bump = Math.max(16, Math.floor((hardMax - w) * 0.35));
+        pw = Math.min(5000, pw + bump);
+        await renderWithPageWidth(pw, meiData);
+        const newW = svgIntrinsicWidthPx();
+
+        // If width doesn't improve (some layouts quantize), stop.
+        if (newW <= w + 1) break;
+
+        w = newW;
+        // If we accidentally crossed into overflow, the top loop on next render will pull it back.
+        if (w > hardMax) break;
+        tries++;
+      }
+
+      // Final clamp pass (in case the fill loop pushed us slightly over).
+      tries = 0;
+      w = svgIntrinsicWidthPx();
+      while (w > hardMax && tries < 8){
+        pw = Math.max(320, Math.floor(pw * 0.96));
+        await renderWithPageWidth(pw, meiData);
+        w = svgIntrinsicWidthPx();
+        tries++;
+      }
+
+      lastGoodPageWidth = pw;
+    }
+
     async function renderCurrent() {
       if (!currentFile || !vrvToolkit) return;
 
@@ -957,19 +962,7 @@
         meiData = applyStartingKeyToMei(meiData, originalTonic, currentMode);
       }
 
-      // Pass 1: normal target width (lets spacing buttons work normally)
-      let pw = computeTargetPageWidth();
-      await renderWithPageWidth(pw, meiData);
-
-      // Pass 2: if it STILL overflows (big Music+), tighten until it wraps
-      // (cap iterations so we never loop)
-      let tries = 0;
-      while (svgOverflowsViewer() && tries < 5){
-        pw = Math.floor(pw * 0.86);        // tighter -> more wrapping
-        pw = Math.max(900, pw);            // don't go insane
-        await renderWithPageWidth(pw, meiData);
-        tries++;
-      }
+      await fitPageWidthToViewer(meiData);
 
       updateScaleBadge();
       updateSpacingBadge();
@@ -993,6 +986,8 @@
         currentTuneCollections = [];
         currentTuneIsMine = getMyCollectionSet().has(currentFile);
         renderCurrentTuneCollectionPills();
+      } finally {
+        lastRenderReason = "other";
       }
     }
 
@@ -1076,6 +1071,8 @@
           : "";
 
         octaveShift = 0;
+        lastGoodPageWidth = null;
+        lastRenderReason = "other";
         await renderCurrent();
       } catch (err) {
         setStatus("—", `Error: ${err.message}`, "");
@@ -1085,18 +1082,19 @@
       }
     }
 
-    async function octaveUp()   { octaveShift += 1; await renderCurrent(); }
-    async function octaveDown() { octaveShift -= 1; await renderCurrent(); }
+    async function octaveUp()   { octaveShift += 1; lastRenderReason="other"; await renderCurrent(); }
+    async function octaveDown() { octaveShift -= 1; lastRenderReason="other"; await renderCurrent(); }
 
     async function halfStep(delta){
       if (!currentTargetKey) return;
       const pc = PC[currentTargetKey];
       if (typeof pc !== "number") return;
 
-      const nextPc = mod12(pc + delta);
+      const nextPc = ((pc + delta)%12+12)%12;
       const next = preferSpellingFromCurrent(nextPc, currentMode, currentTargetKey);
 
       currentTargetKey = next;
+      lastRenderReason="other";
       await renderCurrent();
     }
     async function halfStepUp(){ await halfStep(+1); }
@@ -1107,6 +1105,7 @@
       const pair = ENHARMONIC_MAP[currentTargetKey];
       if (!pair) return;
       currentTargetKey = pair;
+      lastRenderReason="other";
       await renderCurrent();
     }
 
@@ -1213,7 +1212,7 @@
             document.getElementById('halfUpBtn').disabled = false;
             document.getElementById('halfDownBtn').disabled = false;
 
-            document.getElementById('randomBtn').addEventListener('click', showRandomTune);
+            document.getElementById('randomBtn').addEventListener('click', () => { lastRenderReason="other"; showRandomTune(); });
             document.getElementById('octUpBtn').addEventListener('click',  octaveUp);
             document.getElementById('octDownBtn').addEventListener('click', octaveDown);
 
@@ -1228,7 +1227,11 @@
 
             document.getElementById('enharmonicBtn').addEventListener('click', toggleEnharmonic);
 
-            window.addEventListener('resize', debounce(() => renderCurrent(), 150));
+            window.addEventListener('resize', debounce(() => {
+              lastRenderReason="resize";
+              lastGoodPageWidth = null;
+              renderCurrent();
+            }, 150));
 
             updateSpacingBadge();
             updateScaleBadge();
@@ -1237,7 +1240,7 @@
             currentTuneIsMine = false;
             renderCurrentTuneCollectionPills();
 
-            if (tuneFiles.length > 0) showRandomTune();
+            if (tuneFiles.length > 0) { lastRenderReason="init"; showRandomTune(); }
           } catch (err) {
             setStatus("—", `Toolkit init error: ${err.message}`, "");
           }
