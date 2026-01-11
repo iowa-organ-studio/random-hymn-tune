@@ -4,63 +4,393 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Random Hymn Tune</title>
+
+  <!-- Modern, clean font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
     :root{
-      --panel-gap:8px;--panel-pad:8px;
-      --gold:#FFC600;--gold-border:#d7a900;
-      --gold-lite:#FFEFAD;--gold-lite-border:#E6D48A;--gold-lite-hover:#FFE68A;
+      --bg:#f7f7f9;
+      --card:#ffffff;
+      --border:#e3e3ea;
+      --ink:#1b1b1f;
+      --muted:#6b6b76;
+      --soft:#ececf2;
 
-      --btn-blue:#0a64dc;--btn-blue-hover:#084fb0;
-      --btn-lightblue:#5ab6ff;--btn-lightblue-hover:#3fa8ff;
-      --btn-red:#d32f2f;--btn-red-hover:#b71c1c;
-      --btn-pink:#ff6fb3;--btn-pink-hover:#ff4fa3;
+      /* PMS 116 C-ish */
+      --gold:#FFCD00;
+      --gold-border:#d7a900;
 
-      --btn-green:#2f7d55;
-      --btn-green-hover:#256646;
+      /* light yellow for +/- */
+      --butter:#FFEFAD;
+      --butter-border:#E6D48A;
+      --butter-hover:#FFE68A;
+
+      --blue:#0a64dc;
+      --blue-hover:#084fb0;
+
+      --radius:12px;
     }
 
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:12px;background:#f7f7f9}
-    #controlsBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-    .control-group{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+    *{box-sizing:border-box}
+    body{
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin:0;
+      padding:10px;
+      background:var(--bg);
+      color:var(--ink);
+      font-weight:400;
+    }
 
+    /* ---------- Reusable card ---------- */
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:8px 10px;
+    }
+
+    /* ---------- Buttons ---------- */
     button{
-      color:#fff;border:none;border-radius:8px;
-      padding:8px 12px;font-size:.95rem;cursor:pointer;
-      transition:background-color 120ms ease,opacity 120ms ease
+      border:none;
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:.96rem;
+      cursor:pointer;
+      transition:background-color 120ms ease, opacity 120ms ease, transform 60ms ease, box-shadow 120ms ease;
+      user-select:none;
+      font-weight:400;
+      line-height:1;
+      white-space:nowrap;
     }
+    button:active{transform:translateY(.5px)}
     button[disabled]{opacity:.6;cursor:not-allowed}
 
-    .btn-random{background:var(--btn-red)} .btn-random:hover{background:var(--btn-red-hover)}
-    .btn-oct{background:var(--btn-pink)} .btn-oct:hover{background:var(--btn-pink-hover)}
-    .btn-spacing{background:var(--btn-blue)} .btn-spacing:hover{background:var(--btn-blue-hover)}
-    .btn-music{background:var(--btn-lightblue);color:#042a46} .btn-music:hover{background:var(--btn-lightblue-hover)}
-    .btn-enharm{background:var(--btn-green);color:#fff}
-    .btn-enharm:hover{background:var(--btn-green-hover)}
+    .btn-gold{
+      background:var(--gold);
+      color:#2d2300;
+      border:1px solid var(--gold-border);
+    }
+    .btn-gold:hover{background:#ffd633}
 
-    .status-badge{
-      padding:2px 8px;background:#fff;border:1px solid #ddd;border-radius:8px;
-      font-weight:600;color:#333
+    .btn-lite{
+      background:var(--butter);
+      color:#3b2f00;
+      border:1px solid var(--butter-border);
+    }
+    .btn-lite:hover{background:var(--butter-hover)}
+
+    .btn-blue{
+      background:var(--blue);
+      color:#fff;
+      border:1px solid rgba(0,0,0,.06);
+    }
+    .btn-blue:hover{background:var(--blue-hover)}
+
+    .miniBtn{
+      padding:6px 10px;
+      border-radius:10px;
+      font-size:.92rem;
+      min-width:40px;
+      text-align:center;
     }
 
-    #optionsBar{display:flex;align-items:flex-start;gap:var(--panel-gap);flex-wrap:wrap;margin-bottom:8px}
-    .panel{background:#fff;border:1px solid #ddd;border-radius:8px;padding:var(--panel-pad);display:inline-flex;align-items:flex-start;gap:10px}
-    .panel legend{font-weight:700;font-size:.9rem;margin-right:6px}
+    .tool-btn{
+      padding:5px 8px;
+      font-size:.85rem;
+      border-radius:10px;
+      background:var(--butter);
+      color:#3b2f00;
+      border:1px solid var(--butter-border);
+      cursor:pointer;
+      font-weight:400;
+      line-height:1;
+    }
+    .tool-btn:hover{background:var(--butter-hover)}
+
+    /* ---------- Row 1: New Tune + status chips ---------- */
+    #row1{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:8px;
+    }
+
+    /* Pill "New Tune" with subtle depth */
+    #randomBtn{
+      border-radius:999px;
+      padding:10px 16px;
+      min-width:110px;
+      box-shadow:
+        0 2px 0 rgba(160,120,0,.55),
+        0 10px 20px rgba(0,0,0,.08);
+    }
+    #randomBtn:hover{
+      box-shadow:
+        0 2px 0 rgba(160,120,0,.55),
+        0 12px 24px rgba(0,0,0,.10);
+    }
+    #randomBtn:active{
+      transform: translateY(1px);
+      box-shadow:
+        0 1px 0 rgba(160,120,0,.55),
+        0 6px 14px rgba(0,0,0,.10);
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:#fff;
+      white-space:nowrap;
+      width:auto;
+      max-width:100%;
+      font-weight:400;
+      font-size:.95rem;
+    }
+    .chip .label{color:var(--muted)}
+    .titleLabel{font-weight:600;} /* only the word Title bold */
+    .valueOnly{
+      color:var(--ink);
+      max-width:65vw;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .pillRow{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
+    .pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--ink);
+      font-size:.9rem;
+      font-weight:400;
+      white-space:nowrap;
+      line-height:1.1;
+    }
+    .pill.active{
+      background:var(--butter);
+      border-color:var(--butter-border);
+      color:#3b2f00;
+    }
+
+    /* ---------- Row 2: Music + watermark ---------- */
+    #viewerWrap{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      overflow:hidden;
+      margin-bottom:8px;
+    }
+    #viewer{
+      padding:8px 12px 4px;
+      min-height:120px;
+      overflow-x:hidden;
+      overflow-y:auto;
+      display:block;
+      position:relative;
+      overscroll-behavior-x:contain;
+    }
+    #svg{display:block}
+    #svg svg{display:block;width:auto;height:auto;margin:0}
+    #musicFooter{
+      border-top:1px solid var(--border);
+      padding:6px 12px;
+      font-size:.82rem;
+      color:#9aa0aa;
+      text-align:left;
+      user-select:none;
+      background:#fff;
+    }
+
+    /* ---------- Row 3: Key range + Scale/Spacing stack (right on desktop) ---------- */
+    #row3{
+      display:flex;
+      gap:10px;
+      align-items:stretch;
+      margin-bottom:8px;
+    }
+
+    #keyRangeCard{
+      width:260px;
+      min-width:260px;
+      padding:8px 10px;
+    }
+    .keyRangeHeader{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin-bottom:6px;
+      font-size:.95rem;
+    }
+    .keyRangeGrid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:6px;
+    }
+    .range-btn{
+      padding:6px 8px;
+      font-size:.88rem;
+      border-radius:10px;
+      background:#f3f3f8;
+      color:#333;
+      border:1px solid var(--border);
+      font-weight:400;
+      line-height:1;
+      width:100%;
+    }
+    .range-btn:hover{background:#ececf5}
+    .range-btn.active{
+      background:var(--gold);
+      color:#2d2300;
+      border:1px solid var(--gold-border);
+    }
+    .keyRangeToolsBottom{
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+
+    /* Fixed width stack, right-justified on desktop */
+    #stackCol{
+      margin-left:0;
+      width:320px;
+      min-width:320px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .sliderHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:6px;
+      flex-wrap:wrap;
+      font-size:.95rem;
+    }
+    .badge{
+      padding:3px 9px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:#fff;
+      color:#222;
+      white-space:nowrap;
+      font-size:.88rem;
+      font-weight:400;
+    }
+    input[type="range"]{
+      width:100%;
+      accent-color:var(--gold);
+      margin:0;
+    }
+
+    @media (max-width: 980px){
+      #row3{flex-direction:column}
+      #keyRangeCard{width:100%; min-width:0}
+      #stackCol{margin-left:0; width:100%; min-width:0}
+    }
+
+    /* ---------- Row 4: Transpose / Enharm / Octave / Catalog (unchanged) ---------- */
+    #row4{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:stretch;
+      margin-bottom:8px;
+    }
+    .comp{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:7px 9px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .sep{
+      width:10px;
+      background:var(--soft);
+      border-radius:999px;
+      align-self:stretch;
+    }
+    @media (max-width: 720px){
+      .sep{display:none}
+    }
+    .compLabel{color:var(--muted)}
+    #catalogLink{
+      text-decoration:none;
+      color:var(--blue);
+      font-weight:400;
+      white-space:nowrap;
+      font-size:.96rem;
+    }
+    #catalogLink:hover{text-decoration:underline}
+
+    /* ---------- Row 5: Filters (unchanged behavior) ---------- */
+    details#filtersCard{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:8px 10px;
+    }
+    details#filtersCard > summary{
+      cursor:pointer;
+      list-style:none;
+      padding:6px 4px;
+      border-radius:10px;
+      user-select:none;
+      font-weight:400;
+    }
+    details#filtersCard > summary::-webkit-details-marker{display:none}
+    details#filtersCard[open] > summary{background:#f3f3f8}
+
+    #optionsBar{
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:8px;
+      padding-bottom:2px;
+    }
+
+    fieldset.panel{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:8px 10px;
+      display:inline-flex;
+      align-items:flex-start;
+      gap:10px;
+      font-weight:400;
+    }
+    fieldset.panel legend{
+      font-size:.95rem;
+      padding:0 6px;
+      color:var(--ink);
+      font-weight:400;
+    }
     #exPanel{flex-basis:100%}
     .row{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
     .panel-tools{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
 
-    .tool-btn{
-      padding:4px 8px;font-size:.82rem;border-radius:6px;
-      background:var(--gold-lite);color:#3b2f00;border:1px solid var(--gold-lite-border);
-      cursor:pointer
-    }
-    .tool-btn:hover{background:var(--gold-lite-hover)}
-    .tool-btn:active{transform:translateY(.5px)}
-
     .chk-label{
       display:inline-flex;align-items:center;gap:6px;font-size:.95rem;
-      padding:2px 6px;border-radius:6px;border:1px solid #ddd;background:#fff;
-      transition:background-color 120ms ease,border-color 120ms ease
+      padding:3px 8px;border-radius:10px;border:1px solid var(--border);background:#fff;
+      transition:background-color 120ms ease,border-color 120ms ease;
+      font-weight:400;
+      white-space:nowrap;
     }
     .chk-label input[type="checkbox"],.chk-label input[type="radio"]{
       appearance:none;width:14px;height:14px;border-radius:3px;border:1px solid #666;
@@ -71,177 +401,181 @@
       content:"";position:absolute;inset:3px;border-radius:2px;background:#333;opacity:0;transition:opacity 120ms ease
     }
     .chk-label input[type="checkbox"]:checked,.chk-label input[type="radio"]:checked{
-      background:var(--gold);border-color:var(--gold-border);box-shadow:0 0 0 2px rgba(255,198,0,.25)
+      background:var(--gold);border-color:var(--gold-border);box-shadow:0 0 0 2px rgba(255,205,0,.18)
     }
     .chk-label input[type="checkbox"]:checked::after,.chk-label input[type="radio"]:checked::after{opacity:1}
-    .chk-label span{padding:0 4px;border-radius:4px;border:1px solid transparent;color:#222;background:transparent}
+    .chk-label span{padding:0 4px;border-radius:6px;border:1px solid transparent;color:#222;background:transparent}
 
-    .key-range{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
-    .key-range .range-btn{padding:4px 8px;font-size:.85rem;border-radius:6px;background:#666;color:#fff;border:1px solid transparent}
-    .key-range .range-btn:hover{background:#444}
-    .key-range .range-btn.active{background:var(--gold);color:#222;border:1px solid var(--gold-border)}
+    #mmRow{gap:8px; justify-content:flex-start}
 
-    #titleBar{
-      background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px 10px;
-      font-weight:700;color:#333;margin:4px 0 8px;
-      display:flex;align-items:center;gap:12px;flex-wrap:wrap
+    /* ---------- Logo (responsive + never overflow) ---------- */
+    #logoAfterFilters{
+      margin-top:10px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      width:100%;
     }
-    #titleBar .title-item{font-weight:700}
-    #titleBar .title-item span.value{font-weight:600}
-    #titleBar .divider{opacity:.35}
-
-    .colPills{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
-    .pill{
-      display:inline-block;
-      padding:2px 8px;
-      border-radius:999px;
-      border:1px solid #ddd;
-      background:#fff;
-      color:#333;
-      font-weight:600;
-      font-size:.88rem;
-      line-height:1.2;
-      white-space:nowrap;
-    }
-    .pill.active{
-      background:var(--gold-lite);
-      border-color:var(--gold-lite-border);
-      color:#3b2f00;
-    }
-
-    /* no horizontal scrollbar; keep content pinned to top */
-    #viewer{
-      background:#fff;border:1px solid #ddd;border-radius:10px;
-      padding:12px 18px 10px; /* extra left/right gutter so measure numbers & final barlines never clip */
-      min-height:200px;
-
-      overflow-x:hidden;
-      overflow-y:auto;
-
-      display:block;
-      position:relative;
-
-      overscroll-behavior-x:contain;
-      margin-bottom:8px;
-    }
-
-    /* keep SVG at intrinsic size; Verovio pageWidth does the fitting */
-    #svg{display:block}
-    #svg svg{
-      display:block;
-      width:auto;
+    /* Never overflow: image scales down on small screens. On desktop it grows up to max-width. */
+    #logoAfterFilters img{
+      width:100%;
+      max-width:560px;   /* tweak this number to make it bigger/smaller */
       height:auto;
-      margin:0;
+      display:block;
+      opacity:.98;
     }
-
-    footer{margin-top:8px;color:#777;font-size:.85rem}
-    #catalogLink{
-      font-size:1rem;
-      font-weight:700;
-      text-decoration:none;
-      color:var(--btn-blue);
-    }
-    #catalogLink:hover{ text-decoration:underline; }
   </style>
 </head>
+
 <body>
-  <div id="controlsBar">
-    <button id="randomBtn" class="btn-random" type="button" disabled>Show Random Tune</button>
 
-    <span id="statusTune" class="status-badge">File: —</span>
-    <span id="statusKey"  class="status-badge">Key: —</span>
+  <!-- Row 1 -->
+  <div id="row1">
+    <button id="randomBtn" class="btn-gold" type="button" disabled>New Tune</button>
 
-    <button id="octUpBtn"   class="btn-oct" type="button" disabled title="Transpose up 8va">8va↑</button>
-    <button id="octDownBtn" class="btn-oct" type="button" disabled title="Transpose down 8va">8va↓</button>
+    <span class="chip" title="Current title">
+      <span class="titleLabel">Title</span>
+      <span id="titleValue" class="valueOnly">—</span>
+    </span>
 
-    <button id="enharmonicBtn" class="btn-enharm" type="button" disabled title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
+    <span class="chip" title="Current key">
+      <span class="label">Key</span>
+      <span id="statusKey" class="value">—</span>
+    </span>
 
-    <button id="halfUpBtn" class="btn-music" type="button" disabled title="Transpose up a semitone">Half step ↑</button>
-    <button id="halfDownBtn" class="btn-music" type="button" disabled title="Transpose down a semitone">Half step ↓</button>
-
-    <div class="control-group" id="groupSpacing">
-      <button id="spacingPlusBtn"  class="btn-spacing" type="button" disabled title="Increase spacing between notes">spacing+</button>
-      <button id="spacingMinusBtn" class="btn-spacing" type="button" disabled title="Decrease spacing between notes">spacing−</button>
-      <span id="spacingBadge" class="status-badge" title="Current spacing (linear / non-linear)">Spacing: —</span>
-    </div>
-
-    <div class="control-group" id="groupScale">
-      <button id="musicPlusBtn"  class="btn-music" type="button" disabled title="Increase music size">Music+</button>
-      <button id="musicMinusBtn" class="btn-music" type="button" disabled title="Decrease music size">Music−</button>
-      <span id="scaleBadge" class="status-badge" title="Current engraving scale">Scale: —</span>
-    </div>
-  </div>
-
-  <div id="titleBar" aria-live="polite" title="">
-    <div class="title-item">Title: <span class="value" id="titleValue">—</span></div>
-    <div class="divider">|</div>
-    <div class="title-item">
-      Collections:
+    <span class="chip" title="Collections for this tune">
+      <span class="label">Collection</span>
       <span class="value">
-        <span id="collectionPills" class="colPills" aria-label="Collections for this tune"></span>
+        <span id="collectionPills" class="pillRow" aria-label="Collections for this tune"></span>
       </span>
+    </span>
+  </div>
+
+  <!-- Row 2 -->
+  <div id="viewerWrap">
+    <div id="viewer"><div id="svg"></div></div>
+    <div id="musicFooter">created for the University of Iowa Organ Studio</div>
+  </div>
+
+  <!-- Row 3 -->
+  <div id="row3">
+    <div class="card" id="keyRangeCard">
+      <div class="keyRangeHeader">Key range</div>
+      <div class="keyRangeGrid" id="keysRangeRowTop"></div>
+      <div style="height:6px"></div>
+      <div class="keyRangeGrid" id="keysRangeRowBottom"></div>
+      <div class="keyRangeToolsBottom">
+        <button class="tool-btn" type="button" id="keysAllBtn"  title="Select all key ranges">select all</button>
+        <button class="tool-btn" type="button" id="keysNoneBtn" title="Select no key ranges">select none</button>
+      </div>
+    </div>
+
+    <div id="stackCol">
+      <div class="card">
+        <div class="sliderHeader">
+          <div>Scale</div>
+          <div style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button id="musicMinusBtn" class="miniBtn btn-lite" type="button" disabled title="Decrease scale">–</button>
+            <button id="musicPlusBtn"  class="miniBtn btn-lite" type="button" disabled title="Increase scale">+</button>
+            <span id="scaleBadge" class="badge">Scale: —</span>
+          </div>
+        </div>
+        <input id="scaleSlider" type="range" min="30" max="200" step="2" value="44" />
+      </div>
+
+      <div class="card">
+        <div class="sliderHeader">
+          <div>Spacing</div>
+          <div style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button id="spacingMinusBtn" class="miniBtn btn-lite" type="button" disabled title="Decrease spacing">–</button>
+            <button id="spacingPlusBtn"  class="miniBtn btn-lite" type="button" disabled title="Increase spacing">+</button>
+            <span id="spacingBadge" class="badge">Spacing: —</span>
+          </div>
+        </div>
+        <input id="spacingSlider" type="range" min="0.20" max="0.35" step="0.01" value="0.22" />
+      </div>
     </div>
   </div>
 
-  <div id="viewer"><div id="svg"></div></div>
+  <!-- Row 4 -->
+  <div id="row4">
+    <div class="comp">
+      <span class="compLabel">Transpose</span>
+      <button id="halfDownBtn" class="miniBtn btn-lite" type="button" disabled title="Transpose down a semitone">–</button>
+      <button id="halfUpBtn"   class="miniBtn btn-lite" type="button" disabled title="Transpose up a semitone">+</button>
+    </div>
 
-  <div id="optionsBar">
-    <fieldset class="panel" id="keysPanel">
-      <legend>
-        Key range
-        <span class="panel-tools">
-          <button class="tool-btn" type="button" id="keysAllBtn"  title="Select all key ranges">all</button>
-          <button class="tool-btn" type="button" id="keysNoneBtn" title="Select no key ranges">none</button>
-        </span>
-      </legend>
-      <div class="row key-range" id="keysRangeRow"></div>
-    </fieldset>
+    <div class="sep" aria-hidden="true"></div>
 
-    <fieldset class="panel" id="exPanel">
-      <legend>
-        Exclude
-        <span class="panel-tools">
-          <button class="tool-btn" type="button" id="exAllBtn"  title="Exclude all tonics">all</button>
-          <button class="tool-btn" type="button" id="exNoneBtn" title="Exclude none">none</button>
-        </span>
-      </legend>
-      <div class="row" id="exRow"></div>
-    </fieldset>
+    <div class="comp">
+      <button id="enharmonicBtn" class="miniBtn btn-blue" type="button" disabled
+        title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
+    </div>
 
-    <fieldset class="panel" id="mmPanel">
-      <legend>Major / Minor</legend>
-      <div class="row" id="mmRow"></div>
-    </fieldset>
+    <div class="sep" aria-hidden="true"></div>
 
-    <fieldset class="panel" id="meterPanel">
-      <legend>
-        Meter
-        <span class="panel-tools">
-          <button class="tool-btn" type="button" id="meterAllBtn"  title="Select all meters">all</button>
-          <button class="tool-btn" type="button" id="meterNoneBtn" title="Select none">none</button>
-        </span>
-      </legend>
-      <div class="row" id="meterRow"></div>
-    </fieldset>
+    <div class="comp">
+      <span class="compLabel">Octave</span>
+      <button id="octDownBtn" class="miniBtn btn-lite" type="button" disabled title="Transpose down an octave">–</button>
+      <button id="octUpBtn"   class="miniBtn btn-lite" type="button" disabled title="Transpose up an octave">+</button>
+    </div>
 
-    <fieldset class="panel" id="colPanel">
-      <legend>
-        Collection
-        <span class="panel-tools">
-          <button class="tool-btn" type="button" id="colAllBtn"  title="Select all collections">all</button>
-          <button class="tool-btn" type="button" id="colNoneBtn" title="Select none">none</button>
-        </span>
-      </legend>
-      <div class="row" id="colRow"></div>
-    </fieldset>
+    <div class="sep" aria-hidden="true"></div>
+
+    <div class="comp">
+      <a id="catalogLink" href="catalog.html">Tune Catalog — create custom “My Collection”</a>
+    </div>
   </div>
 
-  <footer>
-    <p style="margin:0">
-      <a id="catalogLink" href="catalog.html">Tune Catalog — create custom “My Collection”</a>
-    </p>
-    <p style="margin-top:4px">created for the University of Iowa Organ Studio</p>
-  </footer>
+  <!-- Row 5 -->
+  <details id="filtersCard">
+    <summary>Filters</summary>
+
+    <div id="optionsBar">
+      <fieldset class="panel" id="exPanel">
+        <legend>
+          Exclude
+          <span class="panel-tools">
+            <button class="tool-btn" type="button" id="exAllBtn"  title="Exclude all tonics">all</button>
+            <button class="tool-btn" type="button" id="exNoneBtn" title="Exclude none">none</button>
+          </span>
+        </legend>
+        <div class="row" id="exRow"></div>
+      </fieldset>
+
+      <fieldset class="panel" id="mmPanel">
+        <legend>Major / Minor</legend>
+        <div class="row" id="mmRow"></div>
+      </fieldset>
+
+      <fieldset class="panel" id="meterPanel">
+        <legend>
+          Meter
+          <span class="panel-tools">
+            <button class="tool-btn" type="button" id="meterAllBtn"  title="Select all meters">all</button>
+            <button class="tool-btn" type="button" id="meterNoneBtn" title="Select none">none</button>
+          </span>
+        </legend>
+        <div class="row" id="meterRow"></div>
+      </fieldset>
+
+      <fieldset class="panel" id="colPanel">
+        <legend>
+          Collection
+          <span class="panel-tools">
+            <button class="tool-btn" type="button" id="colAllBtn"  title="Select all collections">all</button>
+            <button class="tool-btn" type="button" id="colNoneBtn" title="Select none">none</button>
+          </span>
+        </legend>
+        <div class="row" id="colRow"></div>
+      </fieldset>
+    </div>
+  </details>
+
+  <!-- Logo directly after filters (responsive, never overflow) -->
+  <div id="logoAfterFilters" aria-label="University of Iowa School of Music logo">
+    <img src="School-of-Music-LockupStacked-RGB.svg" alt="University of Iowa School of Music">
+  </div>
 
   <script>
     const MY_LABEL = "My Collection";
@@ -290,7 +624,7 @@
     let currentTuneCollections = [];
     let currentTuneIsMine = false;
 
-    let lastRenderReason = "init"; // "init" | "scale" | "spacing" | "resize" | "other"
+    let lastRenderReason = "init";
     let lastGoodPageWidth = null;
 
     const baseOptions = {
@@ -323,9 +657,11 @@
     const SCALE_MAX = 200;
     const SCALE_STEP = 2;
 
-    const SPACING_MIN = 0.08;
-    const SPACING_MAX = 0.80;
+    const SPACING_MIN = 0.20;
+    const SPACING_MAX = 0.35;
     const SPACING_STEP = 0.01;
+
+    const SPACING_RATIO = baseOptions.spacingNonLinear / baseOptions.spacingLinear;
 
     function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
 
@@ -431,8 +767,10 @@
 
     const keyRangeButtons = new Map();
 
-    function addAccidentalRangeButtons(containerId) {
-      const row = document.getElementById(containerId);
+    function addAccidentalRangeButtons(topId, bottomId) {
+      const top = document.getElementById(topId);
+      const bot = document.getElementById(bottomId);
+
       for (let n = 0; n <= 7; n++) {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -443,7 +781,8 @@
           if (accidentalsSelected.has(n)) { accidentalsSelected.delete(n); btn.classList.remove('active'); }
           else { accidentalsSelected.add(n); btn.classList.add('active'); }
         });
-        row.appendChild(btn);
+
+        (n <= 3 ? top : bot).appendChild(btn);
         keyRangeButtons.set(n, btn);
       }
     }
@@ -474,15 +813,19 @@
     function updateScaleBadge() {
       const badge = document.getElementById('scaleBadge');
       if (badge) badge.textContent = `Scale: ${baseOptions.scale}`;
+      const slider = document.getElementById('scaleSlider');
+      if (slider) slider.value = String(baseOptions.scale);
     }
+
     function updateSpacingBadge() {
       const badge = document.getElementById('spacingBadge');
       if (badge) {
         const lin = baseOptions.spacingLinear.toFixed(2);
-        const non = baseOptions.spacingNonLinear.toFixed(2);
-        badge.textContent = `Spacing: ${lin} / ${non}`;
-        badge.title = `Linear: ${lin}, Non-linear: ${non}`;
+        badge.textContent = `Spacing: ${lin}`;
+        badge.title = `Spacing: ${lin}`;
       }
+      const slider = document.getElementById('spacingSlider');
+      if (slider) slider.value = String(baseOptions.spacingLinear.toFixed(2));
     }
 
     function musicSizeChange(delta) {
@@ -496,8 +839,9 @@
     }
 
     function spacingChange(delta) {
-      const nextLinear     = clamp(baseOptions.spacingLinear     + delta, SPACING_MIN, SPACING_MAX);
-      const nextNonLinear  = clamp(baseOptions.spacingNonLinear  + delta, SPACING_MIN, SPACING_MAX);
+      const nextLinear = clamp(baseOptions.spacingLinear + delta, SPACING_MIN, SPACING_MAX);
+      const nextNonLinear = nextLinear * SPACING_RATIO;
+
       if (nextLinear !== baseOptions.spacingLinear || nextNonLinear !== baseOptions.spacingNonLinear) {
         baseOptions.spacingLinear = nextLinear;
         baseOptions.spacingNonLinear = nextNonLinear;
@@ -505,6 +849,28 @@
         renderCurrent();
       }
       updateSpacingBadge();
+    }
+
+    function spacingSetFromSlider(newLinear){
+      const lin = clamp(Number(newLinear), SPACING_MIN, SPACING_MAX);
+      const non = lin * SPACING_RATIO;
+      if (lin !== baseOptions.spacingLinear || non !== baseOptions.spacingNonLinear){
+        baseOptions.spacingLinear = lin;
+        baseOptions.spacingNonLinear = non;
+        lastRenderReason = "spacing";
+        renderCurrent();
+      }
+      updateSpacingBadge();
+    }
+
+    function scaleSetFromSlider(newScale){
+      const sc = clamp(Number(newScale), SCALE_MIN, SCALE_MAX);
+      if (sc !== baseOptions.scale){
+        baseOptions.scale = sc;
+        lastRenderReason = "scale";
+        renderCurrent();
+      }
+      updateScaleBadge();
     }
 
     async function fetchMei(fileName) {
@@ -885,34 +1251,36 @@
       vrvToolkit.loadData(meiData);
       const svgStr = vrvToolkit.renderToSVG(1, {});
       document.getElementById('svg').innerHTML = svgStr;
+
+      // reduce “empty” scroll area under music by matching viewer max-height to SVG height
+      requestAnimationFrame(() => {
+        const viewer = document.getElementById('viewer');
+        const svgEl = document.querySelector('#svg svg');
+        if (!viewer || !svgEl) return;
+
+        const hAttr = parseFloat(svgEl.getAttribute('height') || "0");
+        if (Number.isFinite(hAttr) && hAttr > 0) {
+          viewer.style.maxHeight = Math.max(170, Math.ceil(hAttr + 16)) + "px";
+        } else {
+          viewer.style.maxHeight = "";
+        }
+      });
     }
 
-    // ✅ NEW FITTING: if it’s wrapping too early, *increase* pageWidth until we nearly fill the viewer.
     async function fitPageWidthToViewer(meiData){
       const avail = viewerAvailableWidth();
-
-      // “never clip” safety buffer at the right edge
       const hardMax = Math.floor(avail - 6);
-
-      // We consider “good fill” if the rendered SVG uses at least this fraction of the viewer width.
-      // This prevents huge whitespace on long tunes.
       const FILL_TARGET = 0.92;
 
-      // Start point:
-      // - For a fresh tune / spacing changes, start at viewer width.
-      // - Otherwise, reuse last good.
       let pw = (lastGoodPageWidth && Math.abs(lastGoodPageWidth - avail) < 260 && lastRenderReason !== "spacing")
         ? lastGoodPageWidth
         : avail;
 
-      // 1) Render once.
       await renderWithPageWidth(pw, meiData);
 
-      // 2) Measure and adjust.
       let w = svgIntrinsicWidthPx();
       let tries = 0;
 
-      // If we overflow, shrink like before (rare).
       while (w > hardMax && tries < 8){
         pw = Math.max(320, Math.floor(pw * 0.94));
         await renderWithPageWidth(pw, meiData);
@@ -920,26 +1288,18 @@
         tries++;
       }
 
-      // If we have huge whitespace (wrap-too-soon), increase pageWidth until we fill most of the viewer.
-      // Key insight: larger Verovio pageWidth reduces the urge to wrap early.
       tries = 0;
       while (w > 0 && w < hardMax * FILL_TARGET && tries < 10){
-        // increase gently to avoid big jumps when spacing changes
         const bump = Math.max(16, Math.floor((hardMax - w) * 0.35));
         pw = Math.min(5000, pw + bump);
         await renderWithPageWidth(pw, meiData);
         const newW = svgIntrinsicWidthPx();
-
-        // If width doesn't improve (some layouts quantize), stop.
         if (newW <= w + 1) break;
-
         w = newW;
-        // If we accidentally crossed into overflow, the top loop on next render will pull it back.
         if (w > hardMax) break;
         tries++;
       }
 
-      // Final clamp pass (in case the fill loop pushed us slightly over).
       tries = 0;
       w = svgIntrinsicWidthPx();
       while (w > hardMax && tries < 8){
@@ -974,7 +1334,7 @@
       try {
         const md = await getMetadata(currentFile);
         const titleText = (md.title || "").trim();
-        setStatus(currentFile, keyShown, titleText);
+        setStatus(keyShown, titleText);
 
         const cols = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
         currentTuneCollections = Array.from(new Set(cols.map(x => String(x || "").trim()).filter(Boolean)));
@@ -982,7 +1342,7 @@
         currentTuneIsMine = getMyCollectionSet().has(currentFile);
         renderCurrentTuneCollectionPills();
       } catch (e) {
-        setStatus(currentFile, keyShown, "");
+        setStatus(keyShown, "");
         currentTuneCollections = [];
         currentTuneIsMine = getMyCollectionSet().has(currentFile);
         renderCurrentTuneCollectionPills();
@@ -991,19 +1351,12 @@
       }
     }
 
-    function setStatus(fileName, keyShown, titleText = "") {
-      const tuneName = (fileName && fileName !== "—") ? fileName.split('/').pop().replace(/\.mei$/i,'') : "—";
+    function setStatus(keyShown, titleText = "") {
       const keyText  = keyShown && keyShown.trim ? keyShown : "—";
       const titleStr = (titleText && titleText.trim()) ? titleText.trim() : "—";
-
-      document.getElementById('statusTune').textContent = `File: ${tuneName}`;
-      document.getElementById('statusKey').textContent  = `Key: ${keyText}`;
-
+      document.getElementById('statusKey').textContent = keyText;
       const titleValue = document.getElementById('titleValue');
       if (titleValue) titleValue.textContent = titleStr;
-
-      const titleBar = document.getElementById('titleBar');
-      if (titleBar) titleBar.title = `Title: ${titleStr}`;
     }
 
     async function pickRandomFilteredTune() {
@@ -1075,7 +1428,7 @@
         lastRenderReason = "other";
         await renderCurrent();
       } catch (err) {
-        setStatus("—", `Error: ${err.message}`, "");
+        setStatus(`Error: ${err.message}`, "");
         currentTuneCollections = [];
         currentTuneIsMine = false;
         renderCurrentTuneCollectionPills();
@@ -1156,13 +1509,24 @@
       });
     }
 
+    function setFiltersDefaultOpen(){
+      const d = document.getElementById('filtersCard');
+      if (!d) return;
+      const mq = window.matchMedia('(min-width: 900px)');
+      const apply = () => { d.open = !!mq.matches; };
+      apply();
+      mq.addEventListener?.('change', apply);
+    }
+
     async function init() {
-      addAccidentalRangeButtons("keysRangeRow");
+      setFiltersDefaultOpen();
+
+      addAccidentalRangeButtons("keysRangeRowTop", "keysRangeRowBottom");
       addExcludeCheckboxes("exRow", excludeTonics);
       addPlainCheckboxes("mmRow", majorMinorVals, true);
 
       await discoverTunes();
-      if (!tuneFiles || tuneFiles.length === 0) setStatus("—", "No tunes found.", "");
+      if (!tuneFiles || tuneFiles.length === 0) setStatus("No tunes found.", "");
 
       await buildCollectionsUIFromAllTunes();
       await buildMetersUIFromAllTunes();
@@ -1179,9 +1543,12 @@
       document.getElementById('colAllBtn').addEventListener('click',  () => { setAllCheckboxes('colRow', true); renderCurrentTuneCollectionPills(); });
       document.getElementById('colNoneBtn').addEventListener('click', () => { setAllCheckboxes('colRow', false); renderCurrentTuneCollectionPills(); });
 
+      document.getElementById('scaleSlider').addEventListener('input', (e) => scaleSetFromSlider(e.target.value));
+      document.getElementById('spacingSlider').addEventListener('input', (e) => spacingSetFromSlider(e.target.value));
+
       const verovioUrl = 'https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js?v=latest';
       try { await loadScript(verovioUrl); }
-      catch (err) { setStatus("—", `Failed to load Verovio: ${err.message}`, ""); return; }
+      catch (err) { setStatus(`Failed to load Verovio: ${err.message}`, ""); return; }
 
       const waitForGlobal = () => new Promise((resolve, reject) => {
         const start = performance.now(); const maxWaitMs = 10000;
@@ -1199,6 +1566,7 @@
             vrvToolkit = new verovio.toolkit();
 
             document.getElementById('randomBtn').disabled  = false;
+
             document.getElementById('octUpBtn').disabled   = false;
             document.getElementById('octDownBtn').disabled = false;
 
@@ -1213,6 +1581,7 @@
             document.getElementById('halfDownBtn').disabled = false;
 
             document.getElementById('randomBtn').addEventListener('click', () => { lastRenderReason="other"; showRandomTune(); });
+
             document.getElementById('octUpBtn').addEventListener('click',  octaveUp);
             document.getElementById('octDownBtn').addEventListener('click', octaveDown);
 
@@ -1242,20 +1611,22 @@
 
             if (tuneFiles.length > 0) { lastRenderReason="init"; showRandomTune(); }
           } catch (err) {
-            setStatus("—", `Toolkit init error: ${err.message}`, "");
+            setStatus(`Toolkit init error: ${err.message}`, "");
           }
         };
-        setStatus("—", "Initializing Verovio…", "");
+        setStatus("Initializing Verovio…", "");
       } catch (err) {
-        setStatus("—", `Verovio not available: ${err.message}`, "");
+        setStatus(`Verovio not available: ${err.message}`, "");
       }
     }
 
     document.addEventListener('DOMContentLoaded', init);
   </script>
 
-  <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b6326fa25e51438692cdc6b1e341fc50"}'></script><!-- End Cloudflare Web Analytics -->
-  
+  <!-- Cloudflare Web Analytics -->
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b6326fa25e51438692cdc6b1e341fc50"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+
 </body>
 </html>
-
