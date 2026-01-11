@@ -23,7 +23,7 @@
       --gold:#FFCD00;
       --gold-border:#d7a900;
 
-      /* light yellow for +/- */
+      /* light yellow for +/- buttons */
       --butter:#FFEFAD;
       --butter-border:#E6D48A;
       --butter-hover:#FFE68A;
@@ -155,7 +155,7 @@
       font-size:.95rem;
     }
     .chip .label{color:var(--muted)}
-    .titleLabel{font-weight:600;} /* only the word Title bold */
+    .titleLabel{font-weight:600;} /* only "Title" bold */
     .valueOnly{
       color:var(--ink);
       max-width:65vw;
@@ -163,6 +163,7 @@
       text-overflow:ellipsis;
       white-space:nowrap;
     }
+
     .pillRow{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
     .pill{
       display:inline-block;
@@ -198,6 +199,7 @@
       display:block;
       position:relative;
       overscroll-behavior-x:contain;
+      max-height:unset; /* will be set dynamically after render */
     }
     #svg{display:block}
     #svg svg{display:block;width:auto;height:auto;margin:0}
@@ -211,14 +213,16 @@
       background:#fff;
     }
 
-    /* ---------- Row 3: Key range + Scale/Spacing stack (right on desktop) ---------- */
+    /* ---------- Row 3: four compartments ---------- */
     #row3{
       display:flex;
       gap:10px;
       align-items:stretch;
       margin-bottom:8px;
+      flex-wrap:wrap;
     }
 
+    /* Key range compact */
     #keyRangeCard{
       width:260px;
       min-width:260px;
@@ -230,6 +234,7 @@
       gap:6px;
       margin-bottom:6px;
       font-size:.95rem;
+      color:var(--ink);
     }
     .keyRangeGrid{
       display:grid;
@@ -260,7 +265,7 @@
       flex-wrap:wrap;
     }
 
-    /* Fixed width stack, right-justified on desktop */
+    /* Scale/Spacing fixed width (NOT right-justified) */
     #stackCol{
       margin-left:0;
       width:320px;
@@ -278,6 +283,7 @@
       margin-bottom:6px;
       flex-wrap:wrap;
       font-size:.95rem;
+      color:var(--ink);
     }
     .badge{
       padding:3px 9px;
@@ -295,50 +301,47 @@
       margin:0;
     }
 
-    @media (max-width: 980px){
-      #row3{flex-direction:column}
-      #keyRangeCard{width:100%; min-width:0}
-      #stackCol{margin-left:0; width:100%; min-width:0}
-    }
-
-    /* ---------- Row 4: Transpose / Enharm / Octave / Catalog (unchanged) ---------- */
-    #row4{
+    /* Transpose+Octave stack + Enharm+Catalog stack */
+    .miniStackCard{
+      width:220px;
+      min-width:220px;
       display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:stretch;
-      margin-bottom:8px;
+      flex-direction:column;
+      gap:6px;
+      padding:8px 10px;
     }
-    .comp{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:7px 9px;
+    .stackTitle{
+      font-size:.92rem;
+      color:var(--muted);
+    }
+    .stackRow{
       display:flex;
-      align-items:center;
       gap:8px;
-      flex-wrap:wrap;
+      align-items:center;
+      flex-wrap:nowrap;
     }
-    .sep{
-      width:10px;
-      background:var(--soft);
-      border-radius:999px;
-      align-self:stretch;
-    }
-    @media (max-width: 720px){
-      .sep{display:none}
-    }
-    .compLabel{color:var(--muted)}
-    #catalogLink{
-      text-decoration:none;
-      color:var(--blue);
-      font-weight:400;
-      white-space:nowrap;
-      font-size:.96rem;
-    }
-    #catalogLink:hover{text-decoration:underline}
 
-    /* ---------- Row 5: Filters (unchanged behavior) ---------- */
+    /* Catalog link underlined */
+    #catalogLink{
+      margin-top:10px;
+      color:var(--blue);
+      text-decoration:underline;
+      font-size:.95rem;
+      line-height:1.2;
+      white-space:normal;
+      font-weight:400;
+    }
+    #catalogLink:hover{
+      color:var(--blue-hover);
+    }
+
+    @media (max-width: 980px){
+      #keyRangeCard{width:100%; min-width:0}
+      #stackCol{width:100%; min-width:0}
+      .miniStackCard{width:100%; min-width:0}
+    }
+
+    /* ---------- Row 5: Filters (collapsible, open on desktop) ---------- */
     details#filtersCard{
       background:var(--card);
       border:1px solid var(--border);
@@ -416,10 +419,9 @@
       align-items:flex-start;
       width:100%;
     }
-    /* Never overflow: image scales down on small screens. On desktop it grows up to max-width. */
     #logoAfterFilters img{
       width:100%;
-      max-width:560px;   /* tweak this number to make it bigger/smaller */
+      max-width:560px; /* tweak if desired */
       height:auto;
       display:block;
       opacity:.98;
@@ -459,6 +461,7 @@
 
   <!-- Row 3 -->
   <div id="row3">
+    <!-- 1) Key range -->
     <div class="card" id="keyRangeCard">
       <div class="keyRangeHeader">Key range</div>
       <div class="keyRangeGrid" id="keysRangeRowTop"></div>
@@ -470,6 +473,7 @@
       </div>
     </div>
 
+    <!-- 2) Scale / Spacing stack -->
     <div id="stackCol">
       <div class="card">
         <div class="sliderHeader">
@@ -495,34 +499,30 @@
         <input id="spacingSlider" type="range" min="0.20" max="0.35" step="0.01" value="0.22" />
       </div>
     </div>
-  </div>
 
-  <!-- Row 4 -->
-  <div id="row4">
-    <div class="comp">
-      <span class="compLabel">Transpose</span>
-      <button id="halfDownBtn" class="miniBtn btn-lite" type="button" disabled title="Transpose down a semitone">–</button>
-      <button id="halfUpBtn"   class="miniBtn btn-lite" type="button" disabled title="Transpose up a semitone">+</button>
+    <!-- 3) Transpose stack with Octave below -->
+    <div class="card miniStackCard" id="xposeOctCard">
+      <div class="stackTitle">Transpose</div>
+      <div class="stackRow">
+        <button id="halfDownBtn" class="miniBtn btn-lite" type="button" disabled title="Transpose down a semitone">–</button>
+        <button id="halfUpBtn"   class="miniBtn btn-lite" type="button" disabled title="Transpose up a semitone">+</button>
+      </div>
+
+      <div class="stackTitle" style="margin-top:10px;">Octave</div>
+      <div class="stackRow">
+        <button id="octDownBtn" class="miniBtn btn-lite" type="button" disabled title="Transpose down an octave">–</button>
+        <button id="octUpBtn"   class="miniBtn btn-lite" type="button" disabled title="Transpose up an octave">+</button>
+      </div>
     </div>
 
-    <div class="sep" aria-hidden="true"></div>
+    <!-- 4) Enharmonic with Tune catalog below -->
+    <div class="card miniStackCard" id="enharmCatalogCard">
+      <div class="stackTitle" style="opacity:0;">.</div>
+      <div class="stackRow">
+        <button id="enharmonicBtn" class="miniBtn btn-blue" type="button" disabled
+          title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
+      </div>
 
-    <div class="comp">
-      <button id="enharmonicBtn" class="miniBtn btn-blue" type="button" disabled
-        title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
-    </div>
-
-    <div class="sep" aria-hidden="true"></div>
-
-    <div class="comp">
-      <span class="compLabel">Octave</span>
-      <button id="octDownBtn" class="miniBtn btn-lite" type="button" disabled title="Transpose down an octave">–</button>
-      <button id="octUpBtn"   class="miniBtn btn-lite" type="button" disabled title="Transpose up an octave">+</button>
-    </div>
-
-    <div class="sep" aria-hidden="true"></div>
-
-    <div class="comp">
       <a id="catalogLink" href="catalog.html">Tune Catalog — create custom “My Collection”</a>
     </div>
   </div>
@@ -661,6 +661,7 @@
     const SPACING_MAX = 0.35;
     const SPACING_STEP = 0.01;
 
+    // Keep non-linear spacing proportional to linear spacing
     const SPACING_RATIO = baseOptions.spacingNonLinear / baseOptions.spacingLinear;
 
     function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
@@ -1252,7 +1253,7 @@
       const svgStr = vrvToolkit.renderToSVG(1, {});
       document.getElementById('svg').innerHTML = svgStr;
 
-      // reduce “empty” scroll area under music by matching viewer max-height to SVG height
+      // Reduce visible empty area under music by matching viewer max-height to SVG height (with a small buffer).
       requestAnimationFrame(() => {
         const viewer = document.getElementById('viewer');
         const svgEl = document.querySelector('#svg svg');
@@ -1260,7 +1261,7 @@
 
         const hAttr = parseFloat(svgEl.getAttribute('height') || "0");
         if (Number.isFinite(hAttr) && hAttr > 0) {
-          viewer.style.maxHeight = Math.max(170, Math.ceil(hAttr + 16)) + "px";
+          viewer.style.maxHeight = Math.max(170, Math.ceil(hAttr + 14)) + "px";
         } else {
           viewer.style.maxHeight = "";
         }
