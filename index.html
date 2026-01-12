@@ -17,7 +17,6 @@
       --border:#e3e3ea;
       --ink:#1b1b1f;
       --muted:#6b6b76;
-      --soft:#ececf2;
 
       /* PMS 116 C-ish */
       --gold:#FFCD00;
@@ -30,6 +29,11 @@
 
       --blue:#0a64dc;
       --blue-hover:#084fb0;
+
+      /* green enharmonic */
+      --green:#2f7d55;
+      --green-hover:#256646;
+      --green-shadow:#1e4c35;
 
       --radius:12px;
     }
@@ -97,6 +101,50 @@
       text-align:center;
     }
 
+    /* Pill "3D" style (used for New Tune + Enharmonic) */
+    .pill3d{
+      border-radius:999px;
+      padding:10px 16px;
+      box-shadow:
+        0 2px 0 rgba(160,120,0,.55),
+        0 10px 20px rgba(0,0,0,.08);
+    }
+    .pill3d:hover{
+      box-shadow:
+        0 2px 0 rgba(160,120,0,.55),
+        0 12px 24px rgba(0,0,0,.10);
+    }
+    .pill3d:active{
+      transform: translateY(1px);
+      box-shadow:
+        0 1px 0 rgba(160,120,0,.55),
+        0 6px 14px rgba(0,0,0,.10);
+    }
+
+    /* Green pill 3D for enharmonic */
+    .btn-green-pill{
+      background:var(--green);
+      color:#fff;
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:999px;
+      padding:10px 16px;
+      box-shadow:
+        0 2px 0 rgba(30,76,53,.85),
+        0 10px 20px rgba(0,0,0,.08);
+    }
+    .btn-green-pill:hover{
+      background:var(--green-hover);
+      box-shadow:
+        0 2px 0 rgba(30,76,53,.85),
+        0 12px 24px rgba(0,0,0,.10);
+    }
+    .btn-green-pill:active{
+      transform: translateY(1px);
+      box-shadow:
+        0 1px 0 rgba(30,76,53,.85),
+        0 6px 14px rgba(0,0,0,.10);
+    }
+
     .tool-btn{
       padding:5px 8px;
       font-size:.85rem;
@@ -119,25 +167,8 @@
       margin-bottom:8px;
     }
 
-    /* Pill "New Tune" with subtle depth */
     #randomBtn{
-      border-radius:999px;
-      padding:10px 16px;
       min-width:110px;
-      box-shadow:
-        0 2px 0 rgba(160,120,0,.55),
-        0 10px 20px rgba(0,0,0,.08);
-    }
-    #randomBtn:hover{
-      box-shadow:
-        0 2px 0 rgba(160,120,0,.55),
-        0 12px 24px rgba(0,0,0,.10);
-    }
-    #randomBtn:active{
-      transform: translateY(1px);
-      box-shadow:
-        0 1px 0 rgba(160,120,0,.55),
-        0 6px 14px rgba(0,0,0,.10);
     }
 
     .chip{
@@ -199,7 +230,7 @@
       display:block;
       position:relative;
       overscroll-behavior-x:contain;
-      max-height:unset; /* will be set dynamically after render */
+      max-height:unset; /* set dynamically after render */
     }
     #svg{display:block}
     #svg svg{display:block;width:auto;height:auto;margin:0}
@@ -265,7 +296,7 @@
       flex-wrap:wrap;
     }
 
-    /* Scale/Spacing fixed width (NOT right-justified) */
+    /* Scale/Spacing fixed width */
     #stackCol{
       margin-left:0;
       width:320px;
@@ -301,10 +332,10 @@
       margin:0;
     }
 
-    /* Transpose+Octave stack + Enharm+Catalog stack */
+    /* Transpose+Octave stack + Tune Catalog card */
     .miniStackCard{
-      width:220px;
-      min-width:220px;
+      width:260px;
+      min-width:260px;
       display:flex;
       flex-direction:column;
       gap:6px;
@@ -320,20 +351,22 @@
       align-items:center;
       flex-wrap:nowrap;
     }
+    .stackRow.wrap{
+      flex-wrap:wrap;
+    }
 
-    /* Catalog link underlined */
+    /* Tune catalog link underlined */
     #catalogLink{
-      margin-top:10px;
       color:var(--blue);
       text-decoration:underline;
       font-size:.95rem;
-      line-height:1.2;
+      line-height:1.25;
       white-space:normal;
       font-weight:400;
+      margin-top:2px;
+      display:inline-block;
     }
-    #catalogLink:hover{
-      color:var(--blue-hover);
-    }
+    #catalogLink:hover{color:var(--blue-hover);}
 
     @media (max-width: 980px){
       #keyRangeCard{width:100%; min-width:0}
@@ -378,15 +411,28 @@
       gap:10px;
       font-weight:400;
     }
+
+    /* Make all legends align consistently */
     fieldset.panel legend{
       font-size:.95rem;
       padding:0 6px;
       color:var(--ink);
       font-weight:400;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      width:100%;
     }
+
     #exPanel{flex-basis:100%}
     .row{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .panel-tools{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
+    .panel-tools{display:inline-flex;gap:6px;vertical-align:middle}
+
+    /* Reserve legend height for mmPanel too (no visible buttons) */
+    .ghost-tools{
+      visibility:hidden;
+    }
 
     .chk-label{
       display:inline-flex;align-items:center;gap:6px;font-size:.95rem;
@@ -409,7 +455,7 @@
     .chk-label input[type="checkbox"]:checked::after,.chk-label input[type="radio"]:checked::after{opacity:1}
     .chk-label span{padding:0 4px;border-radius:6px;border:1px solid transparent;color:#222;background:transparent}
 
-    #mmRow{gap:8px; justify-content:flex-start}
+    #mmRow{gap:10px; justify-content:flex-start}
 
     /* ---------- Logo (responsive + never overflow) ---------- */
     #logoAfterFilters{
@@ -433,7 +479,7 @@
 
   <!-- Row 1 -->
   <div id="row1">
-    <button id="randomBtn" class="btn-gold" type="button" disabled>New Tune</button>
+    <button id="randomBtn" class="btn-gold pill3d" type="button" disabled>New Tune</button>
 
     <span class="chip" title="Current title">
       <span class="titleLabel">Title</span>
@@ -500,12 +546,16 @@
       </div>
     </div>
 
-    <!-- 3) Transpose stack with Octave below -->
+    <!-- 3) Transpose stack with Enharmonic to the right of Transpose; Octave below -->
     <div class="card miniStackCard" id="xposeOctCard">
       <div class="stackTitle">Transpose</div>
-      <div class="stackRow">
+      <div class="stackRow wrap">
         <button id="halfDownBtn" class="miniBtn btn-lite" type="button" disabled title="Transpose down a semitone">–</button>
         <button id="halfUpBtn"   class="miniBtn btn-lite" type="button" disabled title="Transpose up a semitone">+</button>
+
+        <!-- Enharmonic moved here, green, pill/3D style like New Tune -->
+        <button id="enharmonicBtn" class="btn-green-pill" type="button" disabled
+          title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
       </div>
 
       <div class="stackTitle" style="margin-top:10px;">Octave</div>
@@ -515,14 +565,9 @@
       </div>
     </div>
 
-    <!-- 4) Enharmonic with Tune catalog below -->
-    <div class="card miniStackCard" id="enharmCatalogCard">
-      <div class="stackTitle" style="opacity:0;">.</div>
-      <div class="stackRow">
-        <button id="enharmonicBtn" class="miniBtn btn-blue" type="button" disabled
-          title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
-      </div>
-
+    <!-- 4) Tune Catalog compartment (link only) -->
+    <div class="card miniStackCard" id="catalogCard">
+      <div class="stackTitle">Tune Catalog</div>
       <a id="catalogLink" href="catalog.html">Tune Catalog — create custom “My Collection”</a>
     </div>
   </div>
@@ -534,26 +579,33 @@
     <div id="optionsBar">
       <fieldset class="panel" id="exPanel">
         <legend>
-          Exclude
+          <span>Exclude</span>
           <span class="panel-tools">
-            <button class="tool-btn" type="button" id="exAllBtn"  title="Exclude all tonics">all</button>
-            <button class="tool-btn" type="button" id="exNoneBtn" title="Exclude none">none</button>
+            <button class="tool-btn" type="button" id="exAllBtn"  title="Exclude all tonics">select all</button>
+            <button class="tool-btn" type="button" id="exNoneBtn" title="Exclude none">select none</button>
           </span>
         </legend>
         <div class="row" id="exRow"></div>
       </fieldset>
 
       <fieldset class="panel" id="mmPanel">
-        <legend>Major / Minor</legend>
+        <legend>
+          <span>Major / Minor</span>
+          <!-- ghost buttons to keep legend height aligned with other panels -->
+          <span class="panel-tools ghost-tools">
+            <button class="tool-btn" type="button">select all</button>
+            <button class="tool-btn" type="button">select none</button>
+          </span>
+        </legend>
         <div class="row" id="mmRow"></div>
       </fieldset>
 
       <fieldset class="panel" id="meterPanel">
         <legend>
-          Meter
+          <span>Meter</span>
           <span class="panel-tools">
-            <button class="tool-btn" type="button" id="meterAllBtn"  title="Select all meters">all</button>
-            <button class="tool-btn" type="button" id="meterNoneBtn" title="Select none">none</button>
+            <button class="tool-btn" type="button" id="meterAllBtn"  title="Select all meters">select all</button>
+            <button class="tool-btn" type="button" id="meterNoneBtn" title="Select none">select none</button>
           </span>
         </legend>
         <div class="row" id="meterRow"></div>
@@ -561,10 +613,10 @@
 
       <fieldset class="panel" id="colPanel">
         <legend>
-          Collection
+          <span>Collection</span>
           <span class="panel-tools">
-            <button class="tool-btn" type="button" id="colAllBtn"  title="Select all collections">all</button>
-            <button class="tool-btn" type="button" id="colNoneBtn" title="Select none">none</button>
+            <button class="tool-btn" type="button" id="colAllBtn"  title="Select all collections">select all</button>
+            <button class="tool-btn" type="button" id="colNoneBtn" title="Select none">select none</button>
           </span>
         </legend>
         <div class="row" id="colRow"></div>
@@ -572,7 +624,7 @@
     </div>
   </details>
 
-  <!-- Logo directly after filters (responsive, never overflow) -->
+  <!-- Logo directly after filters -->
   <div id="logoAfterFilters" aria-label="University of Iowa School of Music logo">
     <img src="School-of-Music-LockupStacked-RGB.svg" alt="University of Iowa School of Music">
   </div>
