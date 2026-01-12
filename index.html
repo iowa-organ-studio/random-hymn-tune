@@ -33,7 +33,6 @@
       /* green enharmonic */
       --green:#2f7d55;
       --green-hover:#256646;
-      --green-shadow:#1e4c35;
 
       --radius:12px;
     }
@@ -101,7 +100,7 @@
       text-align:center;
     }
 
-    /* Pill "3D" style (used for New Tune + Enharmonic) */
+    /* Pill "3D" style (used for New Tune) */
     .pill3d{
       border-radius:999px;
       padding:10px 16px;
@@ -158,6 +157,20 @@
     }
     .tool-btn:hover{background:var(--butter-hover)}
 
+    /* small grey reset button */
+    .reset-btn{
+      padding:5px 8px;
+      font-size:.85rem;
+      border-radius:10px;
+      background:#ececf1;
+      color:#4a4a55;
+      border:1px solid #d2d2dc;
+      cursor:pointer;
+      font-weight:400;
+      line-height:1;
+    }
+    .reset-btn:hover{background:#e3e3eb}
+
     /* ---------- Row 1: New Tune + status chips ---------- */
     #row1{
       display:flex;
@@ -167,9 +180,10 @@
       margin-bottom:8px;
     }
 
-    #randomBtn{
-      min-width:110px;
-    }
+    #randomBtn{ min-width:110px; }
+
+    /* Enharmonic same size as New Tune */
+    #enharmonicBtn{ min-width:110px; }
 
     .chip{
       display:inline-flex;
@@ -244,7 +258,7 @@
       background:#fff;
     }
 
-    /* ---------- Row 3: four compartments ---------- */
+    /* ---------- Row 3: compartments ---------- */
     #row3{
       display:flex;
       gap:10px;
@@ -332,7 +346,7 @@
       margin:0;
     }
 
-    /* Transpose+Octave stack + Tune Catalog card */
+    /* Transpose+Octave stack */
     .miniStackCard{
       width:260px;
       min-width:260px;
@@ -351,9 +365,7 @@
       align-items:center;
       flex-wrap:nowrap;
     }
-    .stackRow.wrap{
-      flex-wrap:wrap;
-    }
+    .stackRow.wrap{ flex-wrap:wrap; }
 
     /* Tune catalog link underlined */
     #catalogLink{
@@ -374,7 +386,7 @@
       .miniStackCard{width:100%; min-width:0}
     }
 
-    /* ---------- Row 5: Filters (collapsible, open on desktop) ---------- */
+    /* ---------- Filters ---------- */
     details#filtersCard{
       background:var(--card);
       border:1px solid var(--border);
@@ -412,7 +424,7 @@
       font-weight:400;
     }
 
-    /* Make all legends align consistently */
+    /* legend: put tools directly to the right of the title */
     fieldset.panel legend{
       font-size:.95rem;
       padding:0 6px;
@@ -420,19 +432,23 @@
       font-weight:400;
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap:10px;
+      justify-content:flex-start; /* changed */
+      gap:8px;                  /* changed */
       width:100%;
+      white-space:nowrap;
+    }
+    .panel-tools{
+      display:inline-flex;
+      gap:6px;
+      vertical-align:middle;
+      margin-left:0;            /* direct adjacency */
     }
 
     #exPanel{flex-basis:100%}
     .row{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .panel-tools{display:inline-flex;gap:6px;vertical-align:middle}
 
     /* Reserve legend height for mmPanel too (no visible buttons) */
-    .ghost-tools{
-      visibility:hidden;
-    }
+    .ghost-tools{ visibility:hidden; }
 
     .chk-label{
       display:inline-flex;align-items:center;gap:6px;font-size:.95rem;
@@ -457,7 +473,7 @@
 
     #mmRow{gap:10px; justify-content:flex-start}
 
-    /* ---------- Logo (responsive + never overflow) ---------- */
+    /* ---------- Logo ---------- */
     #logoAfterFilters{
       margin-top:10px;
       display:flex;
@@ -467,7 +483,7 @@
     }
     #logoAfterFilters img{
       width:100%;
-      max-width:560px; /* tweak if desired */
+      max-width:560px;
       height:auto;
       display:block;
       opacity:.98;
@@ -525,9 +541,10 @@
         <div class="sliderHeader">
           <div>Scale</div>
           <div style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button id="scaleResetBtn" class="reset-btn" type="button" disabled title="Reset scale to default">reset</button>
             <button id="musicMinusBtn" class="miniBtn btn-lite" type="button" disabled title="Decrease scale">–</button>
             <button id="musicPlusBtn"  class="miniBtn btn-lite" type="button" disabled title="Increase scale">+</button>
-            <span id="scaleBadge" class="badge">Scale: —</span>
+            <span id="scaleBadge" class="badge">—</span>
           </div>
         </div>
         <input id="scaleSlider" type="range" min="30" max="200" step="2" value="44" />
@@ -537,9 +554,10 @@
         <div class="sliderHeader">
           <div>Spacing</div>
           <div style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button id="spacingResetBtn" class="reset-btn" type="button" disabled title="Reset spacing to default">reset</button>
             <button id="spacingMinusBtn" class="miniBtn btn-lite" type="button" disabled title="Decrease spacing">–</button>
             <button id="spacingPlusBtn"  class="miniBtn btn-lite" type="button" disabled title="Increase spacing">+</button>
-            <span id="spacingBadge" class="badge">Spacing: —</span>
+            <span id="spacingBadge" class="badge">—</span>
           </div>
         </div>
         <input id="spacingSlider" type="range" min="0.20" max="0.35" step="0.01" value="0.22" />
@@ -553,7 +571,6 @@
         <button id="halfDownBtn" class="miniBtn btn-lite" type="button" disabled title="Transpose down a semitone">–</button>
         <button id="halfUpBtn"   class="miniBtn btn-lite" type="button" disabled title="Transpose up a semitone">+</button>
 
-        <!-- Enharmonic moved here, green, pill/3D style like New Tune -->
         <button id="enharmonicBtn" class="btn-green-pill" type="button" disabled
           title="Toggle enharmonic spelling (C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb)">♯/♭</button>
       </div>
@@ -565,14 +582,10 @@
       </div>
     </div>
 
-    <!-- 4) Tune Catalog compartment (link only) -->
-    <div class="card miniStackCard" id="catalogCard">
-      <div class="stackTitle">Tune Catalog</div>
-      <a id="catalogLink" href="catalog.html">Tune Catalog — create custom “My Collection”</a>
-    </div>
+    <!-- (Tune Catalog compartment removed entirely) -->
   </div>
 
-  <!-- Row 5 -->
+  <!-- Filters -->
   <details id="filtersCard">
     <summary>Filters</summary>
 
@@ -591,7 +604,6 @@
       <fieldset class="panel" id="mmPanel">
         <legend>
           <span>Major / Minor</span>
-          <!-- ghost buttons to keep legend height aligned with other panels -->
           <span class="panel-tools ghost-tools">
             <button class="tool-btn" type="button">select all</button>
             <button class="tool-btn" type="button">select none</button>
@@ -623,6 +635,11 @@
       </fieldset>
     </div>
   </details>
+
+  <!-- Tune Catalog link (still always visible, no title) -->
+  <div style="margin-top:8px;">
+    <a id="catalogLink" href="catalog.html">Tune Catalog — create custom “My Collection”</a>
+  </div>
 
   <!-- Logo directly after filters -->
   <div id="logoAfterFilters" aria-label="University of Iowa School of Music logo">
@@ -704,6 +721,10 @@
       breaks: "auto",
       spacingLyrics: 6
     };
+
+    /* Defaults for reset buttons */
+    const DEFAULT_SCALE = 44;
+    const DEFAULT_SPACING_LINEAR = 0.22;
 
     const SCALE_MIN = 30;
     const SCALE_MAX = 200;
@@ -865,7 +886,10 @@
 
     function updateScaleBadge() {
       const badge = document.getElementById('scaleBadge');
-      if (badge) badge.textContent = `Scale: ${baseOptions.scale}`;
+      if (badge) {
+        badge.textContent = String(baseOptions.scale);      // numbers only
+        badge.title = `Scale: ${baseOptions.scale}`;
+      }
       const slider = document.getElementById('scaleSlider');
       if (slider) slider.value = String(baseOptions.scale);
     }
@@ -874,7 +898,7 @@
       const badge = document.getElementById('spacingBadge');
       if (badge) {
         const lin = baseOptions.spacingLinear.toFixed(2);
-        badge.textContent = `Spacing: ${lin}`;
+        badge.textContent = lin;                            // numbers only
         badge.title = `Spacing: ${lin}`;
       }
       const slider = document.getElementById('spacingSlider');
@@ -924,6 +948,27 @@
         renderCurrent();
       }
       updateScaleBadge();
+    }
+
+    function resetScale(){
+      if (baseOptions.scale !== DEFAULT_SCALE){
+        baseOptions.scale = DEFAULT_SCALE;
+        lastRenderReason = "scale";
+        renderCurrent();
+      }
+      updateScaleBadge();
+    }
+
+    function resetSpacing(){
+      const lin = DEFAULT_SPACING_LINEAR;
+      const non = lin * SPACING_RATIO;
+      if (baseOptions.spacingLinear !== lin || baseOptions.spacingNonLinear !== non){
+        baseOptions.spacingLinear = lin;
+        baseOptions.spacingNonLinear = non;
+        lastRenderReason = "spacing";
+        renderCurrent();
+      }
+      updateSpacingBadge();
     }
 
     async function fetchMei(fileName) {
@@ -1305,7 +1350,6 @@
       const svgStr = vrvToolkit.renderToSVG(1, {});
       document.getElementById('svg').innerHTML = svgStr;
 
-      // Reduce visible empty area under music by matching viewer max-height to SVG height (with a small buffer).
       requestAnimationFrame(() => {
         const viewer = document.getElementById('viewer');
         const svgEl = document.querySelector('#svg svg');
@@ -1632,6 +1676,12 @@
             document.getElementById('enharmonicBtn').disabled = false;
             document.getElementById('halfUpBtn').disabled = false;
             document.getElementById('halfDownBtn').disabled = false;
+
+            /* enable + wire reset buttons */
+            document.getElementById('scaleResetBtn').disabled = false;
+            document.getElementById('spacingResetBtn').disabled = false;
+            document.getElementById('scaleResetBtn').addEventListener('click', resetScale);
+            document.getElementById('spacingResetBtn').addEventListener('click', resetSpacing);
 
             document.getElementById('randomBtn').addEventListener('click', () => { lastRenderReason="other"; showRandomTune(); });
 
