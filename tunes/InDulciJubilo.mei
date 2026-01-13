@@ -19,7 +19,7 @@
         <title>x</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
-        <key pname="a" mode="major"/>
+        <key pname="a" mode="minor"/>
 
              <!-- ******Duple or Triple (capitalized) *********-->
         <annot type="meterGroup">Triple</annot>
@@ -237,6 +237,7 @@
   </music>
 
 </mei>
+
 
 
 
