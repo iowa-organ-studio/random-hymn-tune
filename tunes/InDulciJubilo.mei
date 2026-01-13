@@ -16,7 +16,7 @@
     <workDesc>
       <work>
                    <!-- ******Title******** -->
-        <title>In Ducli Jubilo BWV 608</title>
+        <title>In Dulci Jubilo BWV 608</title>
 
              <!-- ******Key (in lowercase) and Mode (in lowercase)****** -->
         <key pname="a" mode="major"/>
@@ -237,5 +237,6 @@
   </music>
 
 </mei>
+
 
 
