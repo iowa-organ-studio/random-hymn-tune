@@ -86,7 +86,7 @@
       position:sticky; top:0;
       background:#fff;
       border-bottom:1px solid var(--border);
-      padding:10px;
+      padding:8px 10px;             /* slightly tighter */
       text-align:left;
       font-size:.92rem;
       user-select:none;
@@ -95,9 +95,26 @@
     thead th.sortable{ cursor:pointer; }
     thead th.sortable:hover{ background:#fafafa; }
 
+    /* sort label + arrows */
+    .thWrap{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .sortArrows{
+      display:inline-flex;
+      flex-direction:column;
+      line-height:0.9;
+      font-size:.72rem;
+      color:#b7b7b7;
+      margin-top:1px;
+    }
+    .sortArrows span{ height:10px; display:block; }
+    th.isActive .sortArrows{ color:#222; }
+
     tbody td{
       border-bottom:1px solid #eee;
-      padding:10px;
+      padding:6px 10px;            /* tighter rows */
       vertical-align:top;
       font-size:.95rem;
       font-weight:400;
@@ -131,15 +148,20 @@
       white-space:nowrap;
     }
 
+    /* smaller checkbox “pill” */
     .checkbox{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:4px 8px;
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:2px 6px;
       border:1px solid var(--border);
       border-radius:8px;
       background:#fff;
       font-weight:700;
     }
-    .checkbox input{ width:16px; height:16px; }
+    .checkbox input{
+      width:13px;
+      height:13px;
+      margin:0;
+    }
 
     .right{ text-align:right; white-space:nowrap; }
 
@@ -203,7 +225,6 @@
     }
     #previewSvg svg{ display:block; }
 
-    /* small screens: more space for the music */
     @media (max-width: 600px){
       #previewHeader{ padding:8px 10px; }
       #previewBody{ padding:6px; }
@@ -233,11 +254,36 @@
     <table id="tuneTable" aria-label="Tune catalog">
       <thead>
         <tr>
-          <th class="right" title="Local-only collection stored in your browser">My</th>
-          <th class="sortable" data-key="title">Title</th>
-          <th class="sortable" data-key="collections">Collection</th>
-          <th class="sortable" data-key="mode">Mode</th>
-          <th class="sortable" data-key="meter">Meter</th>
+          <th class="sortable right" data-key="mine" title="Local-only collection stored in your browser">
+            <span class="thWrap">
+              <span>My Collection</span>
+              <span class="sortArrows" aria-hidden="true"><span>▲</span><span>▼</span></span>
+            </span>
+          </th>
+          <th class="sortable" data-key="title">
+            <span class="thWrap">
+              <span>Title</span>
+              <span class="sortArrows" aria-hidden="true"><span>▲</span><span>▼</span></span>
+            </span>
+          </th>
+          <th class="sortable" data-key="collections">
+            <span class="thWrap">
+              <span>Collection</span>
+              <span class="sortArrows" aria-hidden="true"><span>▲</span><span>▼</span></span>
+            </span>
+          </th>
+          <th class="sortable" data-key="mode">
+            <span class="thWrap">
+              <span>Mode</span>
+              <span class="sortArrows" aria-hidden="true"><span>▲</span><span>▼</span></span>
+            </span>
+          </th>
+          <th class="sortable" data-key="meter">
+            <span class="thWrap">
+              <span>Meter</span>
+              <span class="sortArrows" aria-hidden="true"><span>▲</span><span>▼</span></span>
+            </span>
+          </th>
         </tr>
       </thead>
       <tbody id="tbody">
@@ -469,11 +515,23 @@ function norm(s){ return String(s||"").toLowerCase().trim(); }
 
 function compare(a,b){
   const dir = (sortDir === "asc") ? 1 : -1;
+
+  if (sortKey === "mine"){
+    // sort by whether it's in My Collection (checked first for asc)
+    const mySet = getMySet();
+    const av = mySet.has(a.file) ? 1 : 0;
+    const bv = mySet.has(b.file) ? 1 : 0;
+    if (av !== bv) return dir * (bv - av); // checked first when asc
+    // tie-breaker by title for stability
+    return String(a.title||"").localeCompare(String(b.title||""), undefined, { sensitivity:"base", numeric:true });
+  }
+
   if (sortKey === "collections"){
     const aj = (a.collections || []).join(";");
     const bj = (b.collections || []).join(";");
     return dir * aj.localeCompare(bj, undefined, { sensitivity:"base", numeric:true });
   }
+
   return dir * String(a[sortKey]||"").localeCompare(String(b[sortKey]||""), undefined, { sensitivity:"base", numeric:true });
 }
 
@@ -502,12 +560,30 @@ function updateCountNote(countShown, total){
   document.getElementById("countNote").textContent = `${countShown} of ${total} tunes`;
 }
 
+function updateSortIndicators(){
+  document.querySelectorAll("thead th.sortable").forEach(th => {
+    const key = th.getAttribute("data-key");
+    const arrows = th.querySelector(".sortArrows");
+    th.classList.toggle("isActive", key === sortKey);
+
+    if (!arrows) return;
+    // default (inactive) shows both grey; active shows direction emphasized by text
+    arrows.innerHTML =
+      (key === sortKey)
+        ? (sortDir === "asc"
+            ? `<span>▲</span><span style="opacity:.25">▼</span>`
+            : `<span style="opacity:.25">▲</span><span>▼</span>`)
+        : `<span>▲</span><span>▼</span>`;
+  });
+}
+
 function renderTable(){
   const tbody = document.getElementById("tbody");
   const mySet = getMySet();
 
   const filtered = rows.filter(matchesFilter).sort(compare);
   updateCountNote(filtered.length, rows.length);
+  updateSortIndicators();
 
   if (!filtered.length){
     tbody.innerHTML = `<tr><td colspan="5" style="color:#666;padding:12px;">No matches.</td></tr>`;
@@ -549,6 +625,9 @@ function renderTable(){
       if (e.target.checked) set.add(file);
       else set.delete(file);
       saveMySet(set);
+
+      // If currently sorting by My Collection, re-render so rows move immediately
+      if (sortKey === "mine") renderTable();
     });
   });
 
@@ -582,7 +661,6 @@ function closePreview(){
 }
 closeBtn.addEventListener("click", closePreview);
 overlay.addEventListener("click", (e) => {
-  // clicking outside the modal closes
   if (e.target === overlay) closePreview();
 });
 document.addEventListener("keydown", (e) => {
@@ -623,7 +701,6 @@ function computePreviewPageWidth(){
   return Math.max(1100, Math.floor(w * 2.0));
 }
 
-// Nuclear whitespace trim
 function trimSvgWhitespace(hostEl, pad = 12){
   const svg = hostEl ? hostEl.querySelector("svg") : null;
   if (!svg) return;
@@ -695,7 +772,6 @@ async function ensureVerovio(){
 async function previewTune(file){
   await ensureVerovio();
 
-  // header
   const md = await getMetadata(file);
   const title = (md.title || "—").trim();
   const cols = (md.collections && md.collections.length) ? md.collections : (md.collection ? [md.collection] : []);
