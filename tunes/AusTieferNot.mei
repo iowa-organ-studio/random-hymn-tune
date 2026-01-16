@@ -159,7 +159,7 @@
                 <note pname="a" oct="4" dur="4"/>
                 <note pname="e" oct="4" dur="4"/>
                 <note pname="g" oct="4" dur="4"/>
-                <note pname="f" oct="4" dur="4"/>
+               <note pname="f" accid="n" oct="4" dur="4"/>
               </layer></staff>
             </measure>
 
@@ -183,3 +183,4 @@
   </music>
 
 </mei>
+
