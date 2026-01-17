@@ -110,23 +110,27 @@
               </layer></staff>
             </measure>
 
-            <measure n="6">
-              <staff n="1"><layer n="1">
-                <note pname="g" oct="4" dur="2"/>
-                <note pname="f" oct="4" dur="4"/>
-              </layer></staff>
-              <fermata startid="#m6f" place="above"/>
-            </measure>
+          <measure n="6">
+  <staff n="1">
+    <layer n="1">
+      <note pname="g" oct="4" dur="2"/>
+      <note xml:id="m6f" pname="f" oct="4" dur="4"/>
+      <note pname="c" oct="5" dur="4"/>
+    </layer>
+  </staff>
+  <fermata startid="#m6f" place="above"/>
+</measure>
 
-            <measure n="7">
-              <staff n="1"><layer n="1">
-                <note pname="c" oct="5" dur="4"/>
-                <note pname="g" oct="4" dur="4"/>
-                <note pname="a" oct="4" dur="4"/>
-                <note pname="b" oct="4" dur="4"/>
-                <note pname="b" oct="4" dur="4"/>
-              </layer></staff>
-            </measure>
+<measure n="7">
+  <staff n="1">
+    <layer n="1">
+      <note pname="g" oct="4" dur="4"/>
+      <note pname="a" oct="4" dur="4"/>
+      <note pname="b" oct="4" dur="4"/>
+      <note pname="b" oct="4" dur="4"/>
+    </layer>
+  </staff>
+</measure>
 
             <measure n="8">
               <staff n="1"><layer n="1">
@@ -170,5 +174,6 @@
   </music>
 
 </mei>
+
 
 
