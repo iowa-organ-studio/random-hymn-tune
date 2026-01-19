@@ -74,14 +74,14 @@
                 <note pname="g" oct="4" dur="4"/>
                 <note pname="g" oct="4" dur="4"/>
                 <note pname="a" accid="n" oct="4" dur="4"/>
-                <note pname="b" oct="4" dur="4"/>
+                <note pname="b" accid="n" oct="4" dur="4"/>
               </layer></staff>
             </measure>
 
             <measure n="4">
               <staff n="1"><layer n="1">
                 <note pname="c" oct="5" dur="2"/>
-                <note xml:id="m4_n2" pname="b" oct="4" dur="2"/>
+                <note xml:id="m4_n2" pname="b" accid="n" oct="4" dur="2"/>
               </layer></staff>
               <fermata startid="#m4_n2" place="above"/>
             </measure>
@@ -171,6 +171,7 @@
   </music>
 
 </mei>
+
 
 
 
