@@ -112,10 +112,7 @@
               </layer></staff>
             </measure>
 
-            <!-- Meter change to 4/4 but do NOT display a new time signature -->
-            <scoreDef meter.count="4" meter.unit="4" meter.visible="false"/>
-
-          <measure n="7" meter.count="4" meter.unit="4" meter.visible="false">
+    <measure n="7">
   <staff n="1">
     <layer n="1">
       <note pname="d" oct="5" dur="2"/>
@@ -186,4 +183,3 @@
   </music>
 
 </mei>
-
