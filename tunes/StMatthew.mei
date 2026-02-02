@@ -39,7 +39,7 @@
               <staffDef n="1" lines="5">
                 <clef shape="G" line="2"/>
                      <!-- ******Time signature *********-->
-                <meterSig count="4" unit="4"/>
+                <meterSig count="3" unit="4"/>
                      <!-- ******Key signature *********-->
                 <keySig sig="3s"/>
                           <!-- ******Key  *********-->
@@ -309,3 +309,4 @@
   </music>
 
 </mei>
+
