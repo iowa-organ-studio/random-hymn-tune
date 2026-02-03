@@ -90,7 +90,7 @@
             </measure>
 
             <!-- m5 -->
-            <measure n="5">
+            <measure n="5" right="rptend">
               <staff n="1"><layer n="1">
                 <note xml:id="m5_n1" pname="g" oct="4" dur="1"/>
               </layer></staff>
@@ -154,5 +154,6 @@
   </music>
 
 </mei>
+
 
 
