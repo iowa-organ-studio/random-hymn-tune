@@ -135,7 +135,7 @@
             <measure n="10">
               <staff n="1"><layer n="1">
                 <note xml:id="m10_n1" pname="g" oct="4" dur="1"/>
-                <note xml:id="m10_n2" pname="f" oct="4" dur="2"/>
+                <note xml:id="m10_n2" pname="f" accid="s" oct="4" dur="2"/>
               </layer></staff>
             </measure>
 
@@ -176,7 +176,7 @@
             <measure n="15">
               <staff n="1"><layer n="1">
                 <note xml:id="m15_n1" pname="g" oct="4" dur="1"/>
-                <note xml:id="m15_n2" pname="f" oct="4" dur="2"/>
+                <note xml:id="m15_n2" pname="f" accid="s" oct="4" dur="2"/>
               </layer></staff>
             </measure>
 
@@ -197,4 +197,5 @@
   </music>
 
 </mei>
+
 
