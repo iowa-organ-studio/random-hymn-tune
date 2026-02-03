@@ -89,6 +89,10 @@
                 <note xml:id="m4_n1" pname="d" oct="4" dur="4"/>
                 <note xml:id="m4_n2" pname="d" oct="4" dur="4"/>
                 <note xml:id="m4_n3" pname="d" oct="4" dur="2"/>
+
+  <!-- Mid-measure END repeat: dots on the left -->
+                  <barLine form="rptend" tstamp="4"/>
+
               </layer></staff>
               <fermata startid="#m4_n3" place="above"/>
             </measure>
@@ -143,4 +147,5 @@
   </music>
 
 </mei>
+
 
