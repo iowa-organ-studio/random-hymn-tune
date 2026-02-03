@@ -115,6 +115,10 @@
     <layer n="1">
       <note pname="g" oct="4" dur="2"/>
       <note xml:id="m6f" pname="f" oct="4" dur="4"/>
+
+  <!-- Mid-measure END repeat: dots on the left -->
+                  <barLine form="rptend" tstamp="3"/>
+
       <note pname="c" oct="5" dur="4"/>
     </layer>
   </staff>
@@ -174,6 +178,7 @@
   </music>
 
 </mei>
+
 
 
 
