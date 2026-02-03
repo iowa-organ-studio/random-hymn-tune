@@ -93,6 +93,10 @@
               <staff n="1"><layer n="1">
                 <note xml:id="m4_n1" pname="d" oct="5" dur="2"/>
                 <note xml:id="m4_n2" pname="c" oct="5" dur="4"/>
+
+<!-- Mid-measure END repeat: dots on the left -->
+                  <barLine form="rptend" tstamp="3"/>
+
                 <note xml:id="m4_n3" pname="e" oct="5" dur="4"/>
               </layer></staff>
               <fermata startid="#m4_n2" place="above"/>
@@ -198,4 +202,5 @@
   </music>
 
 </mei>
+
 
