@@ -90,6 +90,8 @@
                 <note pname="b" oct="4" dur="4"/>
                 <note pname="c" oct="5" dur="4"/>
                 <note xml:id="m4b" pname="b" oct="4" dur="4"/>
+ <!-- Mid-measure END repeat: dots on the left -->
+                  <barLine form="rptend" tstamp="3"/>
                 <note pname="b" oct="4" dur="4"/>
               </layer></staff>
               <fermata startid="#m4b" place="above"/>
@@ -185,3 +187,4 @@
   </music>
 
 </mei>
+
