@@ -39,7 +39,7 @@
               <staffDef n="1" lines="5">
                 <clef shape="G" line="2"/>
                      <!-- ******Time signature *********-->
-                <meterSig count="4" unit="4"/>
+                <meterSig count="6" unit="4"/>
                      <!-- ******Key signature *********-->
                 <keySig sig="2f"/>
                           <!-- ******Key  *********-->
@@ -88,10 +88,13 @@
             <measure n="4">
               <staff n="1"><layer n="1">
                 <note xml:id="m4g" pname="g" oct="4" dur="1"/>
+ <!-- Mid-measure END repeat: dots on the left -->
+                  <barLine form="rptend" tstamp="1"/>
+
                 <note pname="g" oct="4" dur="4"/>
                 <note pname="a" oct="4" dur="4"/>
               </layer></staff>
-              <fermata startid="#m4g" place="above"/>
+            
             </measure>
 
             <measure n="5">
@@ -183,3 +186,4 @@
   </music>
 
 </mei>
+
